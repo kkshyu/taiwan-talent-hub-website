@@ -944,7 +944,11 @@ function superOnly(req, res, next) {
 }
 const wrap = fn => (req, res) => fn(req, res).catch(e => {
   console.error('[api error]', e.message);
-  res.status(500).json({ error: '伺服器處理失敗。' });
+  const paymentUnavailable = e && (e.code === 'api_key_expired' ||
+    ['StripeAuthenticationError', 'StripeConnectionError', 'StripeRateLimitError', 'StripeAPIError'].includes(e.type));
+  res.status(paymentUnavailable ? 503 : 500).json(paymentUnavailable
+    ? { error: '付款服務暫時無法使用，請稍後再試。', code: 'PAYMENT_UNAVAILABLE' }
+    : { error: '伺服器處理失敗。' });
 });
 
 app.get('/api/health', (req, res) =>
@@ -2119,7 +2123,7 @@ app.post('/api/admin/ig/assets', auth, adminOnly, requireDb, wrap(async (req, re
 }));
 
 // 素材檔案直傳：multipart file＋note → MinIO assets/（未設 S3 則落 uploads/social）→ 登記 ig_assets
-const assetUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 1, parts: 2 } });
+const assetUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 1, parts: 4 } });
 app.post('/api/admin/ig/assets/upload', auth, adminOnly, requireDb, (req, res) => {
   assetUpload.single('file')(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
@@ -2137,6 +2141,27 @@ app.post('/api/admin/ig/assets/upload', auth, adminOnly, requireDb, (req, res) =
       const id = uid('iga_');
       await q(`INSERT INTO ig_assets (id,url,note) VALUES ($1,$2,$3)`, [id, url, note]);
       res.json({ ok: true, id, url });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+});
+
+// 菜單品項圖片：MinIO assets/menu-*（未設 S3 則落 uploads/menu）。回 { url }
+const UPLOAD_MENU_DIR = path.join(__dirname, 'uploads', 'menu');
+fs.mkdirSync(UPLOAD_MENU_DIR, { recursive: true });
+const menuUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0, parts: 1 } });
+app.post('/api/admin/upload/menu', auth, adminOnly, (req, res) => {
+  menuUpload.single('file')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
+    try {
+      const f = req.file;
+      if (!f) return res.status(400).json({ error: 'file required' });
+      const sizeErr = assertSocialImageFile({ mimetype: f.mimetype, size: f.size });
+      if (sizeErr) return res.status(400).json({ error: sizeErr });
+      if (sniffImageType(f.buffer.subarray(0, 12)) !== f.mimetype) return res.status(400).json({ error: '檔案內容不是有效的圖片。' });
+      const filename = 'menu-' + buildSafeSocialFilename(f.originalname, f.mimetype);
+      let url = await igPublisher.uploadAsset(f.buffer, filename, f.mimetype);
+      if (!url) { fs.writeFileSync(path.join(UPLOAD_MENU_DIR, filename), f.buffer); url = `/uploads/menu/${filename}`; }
+      res.json({ url });
     } catch (e) { res.status(500).json({ error: e.message }); }
   });
 });
