@@ -2118,6 +2118,29 @@ app.post('/api/admin/ig/assets', auth, adminOnly, requireDb, wrap(async (req, re
   res.json({ ok: true, id });
 }));
 
+// 素材檔案直傳：multipart file＋note → MinIO assets/（未設 S3 則落 uploads/social）→ 登記 ig_assets
+const assetUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 1, parts: 2 } });
+app.post('/api/admin/ig/assets/upload', auth, adminOnly, requireDb, (req, res) => {
+  assetUpload.single('file')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
+    try {
+      const f = req.file;
+      if (!f) return res.status(400).json({ error: 'file required' });
+      const sizeErr = assertSocialImageFile({ mimetype: f.mimetype, size: f.size });
+      if (sizeErr) return res.status(400).json({ error: sizeErr });
+      if (sniffImageType(f.buffer.subarray(0, 12)) !== f.mimetype) return res.status(400).json({ error: '檔案內容不是有效的圖片。' });
+      const note = String((req.body || {}).note || '').trim();
+      if (!note) return res.status(400).json({ error: '請附素材說明（AI 產文要呼應照片內容）。' });
+      const filename = buildSafeSocialFilename(f.originalname, f.mimetype);
+      let url = await igPublisher.uploadAsset(f.buffer, filename, f.mimetype);
+      if (!url) { fs.writeFileSync(path.join(UPLOAD_SOCIAL_DIR, filename), f.buffer); url = `/uploads/social/${filename}`; }
+      const id = uid('iga_');
+      await q(`INSERT INTO ig_assets (id,url,note) VALUES ($1,$2,$3)`, [id, url, note]);
+      res.json({ ok: true, id, url });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+});
+
 app.get('/api/admin/ig/assets', auth, adminOnly, requireDb, wrap(async (_req, res) => {
   res.json({ assets: (await q(`SELECT * FROM ig_assets ORDER BY created_at DESC LIMIT 100`)).rows });
 }));

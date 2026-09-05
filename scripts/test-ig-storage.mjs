@@ -51,6 +51,7 @@ function publisher(t, env = {}) {
   vm.runInNewContext(source, context, { filename: publisherPath });
   return {
     render: () => module.exports.renderPostImages(post, { port: 18081, uploadDir }),
+    uploadAsset: (...a) => module.exports.uploadAsset(...a),
     uploadDir, screenshots, closes: () => closes,
   };
 }
@@ -119,4 +120,15 @@ test('unconfigured S3 keeps the local uploads fallback', async t => {
   assert.deepEqual(Array.from(urls), [1, 2].map(n => `/uploads/social/ig-safeid01-p${n}.jpg`));
   for (const n of [1, 2]) assert.deepEqual(readFileSync(path.join(app.uploadDir, `ig-safeid01-p${n}.jpg`)), jpeg);
   assert.equal(app.closes(), 1);
+});
+
+test('uploadAsset: S3 puts under assets/ and returns public URL; null without S3', async t => {
+  const remote = await storage(t);
+  const app = publisher(t, remote.env);
+  const url = await app.uploadAsset(jpeg, 'site-01.jpg', 'image/jpeg');
+  assert.equal(url, 'https://media.example.test/ig-media/assets/site-01.jpg');
+  assert.equal(remote.requests.length, 1);
+  assert.equal(new URL(remote.requests[0].url, remote.endpoint).pathname, '/ig-media/assets/site-01.jpg');
+  assert.equal(remote.requests[0].body.equals(jpeg), true);
+  assert.equal(await publisher(t, {}).uploadAsset(jpeg, 'x.jpg', 'image/jpeg'), null);
 });
