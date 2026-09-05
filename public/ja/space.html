@@ -116,65 +116,6 @@
   var LANG = htmlLang.indexOf('en') === 0 ? 'en' : (htmlLang.indexOf('ja') === 0 ? 'ja' : 'zh');
   var FAIL_TEXT = { zh: '無法載入資料。', en: 'Could not load content.', ja: '読み込めませんでした。' }[LANG];
   var EMPTY_MENU = { zh: '目前尚未提供菜單資料。', en: 'Menu coming soon.', ja: 'メニュー準備中。' }[LANG];
-  var ORIG_LABEL = { zh: '原價', en: 'Was', ja: '定価' }[LANG];
-
-  var CAT_LABEL = {
-    COFFEE: { zh: '咖啡', en: 'Coffee', ja: 'コーヒー' },
-    BEVERAGE: { zh: '飲品', en: 'Beverage', ja: 'ドリンク' },
-    ALCOHOL: { zh: '酒精飲品', en: 'Alcohol', ja: 'アルコール' },
-    FOOD: { zh: '餐點', en: 'Food', ja: 'フード' },
-    SNACK: { zh: '點心', en: 'Snack', ja: 'おやつ' },
-  };
-  var esc = function (s) {
-    return (s == null ? '' : String(s)).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-  };
-  var money = function (n) { return 'NT$' + Number(n || 0).toLocaleString('zh-TW'); };
-
-  function menuHtml(items) {
-    if (!items || !items.length) return '<p class="menu-empty">' + EMPTY_MENU + '</p>';
-    var hasAlcohol = items.some(function (it) { return it.alcohol; });
-    var byCat = {};
-    var order = [];
-    items.forEach(function (it) {
-      if (!byCat[it.cat]) { byCat[it.cat] = []; order.push(it.cat); }
-      byCat[it.cat].push(it);
-    });
-    var html = order.map(function (cat) {
-      var label = CAT_LABEL[cat] || { zh: cat, en: '', ja: cat };
-      var title = LANG === 'en' ? label.en : (LANG === 'ja' ? label.ja : label.zh);
-      var sub = LANG === 'zh' ? label.en : '';
-      return (
-        '<section class="menu-group">' +
-          '<div class="menu-group__head">' +
-            '<h3 class="menu-group__zh">' + esc(title) + '</h3>' +
-            (sub ? '<span class="menu-group__en">' + esc(sub) + '</span>' : '') +
-          '</div>' +
-          '<ul class="menu-list">' + byCat[cat].map(function (item) {
-            var showOrig = item.emo > 0 && item.emo !== item.price;
-            var priceHtml = showOrig
-              ? '<span class="now">' + money(item.emo) + '</span><span class="orig">' + ORIG_LABEL + ' <s>' + money(item.price) + '</s></span>'
-              : '<span class="now">' + money(item.price) + '</span>';
-            return (
-              '<li class="menu-item">' +
-                '<div class="menu-item__names">' +
-                  '<span class="menu-item__zh">' + esc(item.zh) + '</span>' +
-                  (item.en ? '<span class="menu-item__en">' + esc(item.en) + '</span>' : '') +
-                  (item.note ? '<div class="menu-item__note">' + esc(item.note) + '</div>' : '') +
-                '</div>' +
-                '<div class="menu-item__price">' + priceHtml + '</div>' +
-              '</li>'
-            );
-          }).join('') + '</ul>' +
-        '</section>'
-      );
-    }).join('');
-    if (hasAlcohol) {
-      html += '<p class="menu-notice">未滿十八歲禁止飲酒。禁止酒駕。 / No alcohol under 18. Don\'t drink and drive.</p>';
-    }
-    return html;
-  }
 
   var dir = new SpaceDir({
     lang: LANG,
@@ -197,7 +138,7 @@
         var doc = window.MenuLib.parseMenuDoc(content.menu);
         items = window.MenuLib.sortItems(window.MenuLib.publishedOnly(doc));
       }
-      dir.setData(content, menuHtml(items));
+      dir.setData(content, window.MenuLib.renderMenuHtml(items, LANG, EMPTY_MENU));
       dir.openFromHash();
     })
     .catch(function (err) {

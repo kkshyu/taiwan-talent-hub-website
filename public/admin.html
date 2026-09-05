@@ -620,8 +620,9 @@ function tabUpdates(d){
 function tabMenu(d){
   const seeded = MENU_SEEDED;
   const items = MenuLib.sortItems(MENU_DOC.items);
-  const body = items.map(it => `<tr data-q="${esc([it.cat, it.zh, it.en, it.note].join(' ').toLowerCase())}">
-      <td>${esc(it.cat)}</td>
+  const body = items.map(it => `<tr data-q="${esc([it.venue, it.cat, it.zh, it.en, it.note].join(' ').toLowerCase())}">
+      <td>${esc(MenuLib.VENUE_LABEL[it.venue]?.zh || it.venue)}</td>
+      <td>${esc(MenuLib.CAT_LABEL[it.cat]?.zh || it.cat)}</td>
       <td>${esc(it.zh)}</td>
       <td class="a-mono">${esc(it.en)}</td>
       <td class="num">${NT(it.price)}</td>
@@ -632,20 +633,21 @@ function tabMenu(d){
         <button class="btn btn--ghost btn-sm" data-mi-edit="${it.id}">編輯</button>
         <button class="btn btn--ghost btn-sm" data-mi-del="${it.id}">刪除</button>
       </td>
-    </tr>`).join('') || '<tr><td colspan="8" class="a-empty">尚無菜單項目</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="9" class="a-empty">尚無菜單項目</td></tr>';
   return `<div class="a-sec">
     <h2>菜單</h2>
     <p class="hint">未發布項目（<span class="pill pill-wait">未發布</span>）不會顯示於空間頁 <code>/space#menu</code>。${seeded ? '目前顯示預設 SEED 資料，尚未寫入資料庫，請按「儲存至伺服器」完成灌入。' : '編輯或刪除項目後，務必按「儲存至伺服器」才會永久保存。'}</p>
     <div class="a-toolbar">
-      <input type="search" id="mi-search" placeholder="搜尋分類 / 中文 / 英文 / 備註…">
+      <input type="search" id="mi-search" placeholder="搜尋店別 / 分類 / 中文 / 英文 / 備註…">
       <button class="btn btn--solid btn-sm" id="menu-save-server">儲存至伺服器</button>
     </div>
     <div class="a-wrap2"><table class="a-tbl">
-      <thead><tr><th>分類</th><th>中文</th><th>英文</th><th class="num">原價</th><th class="num">會員價</th><th>酒精</th><th>發布</th><th>操作</th></tr></thead>
+      <thead><tr><th>店別</th><th>分類</th><th>中文</th><th>英文</th><th class="num">原價</th><th class="num">會員價</th><th>酒精</th><th>發布</th><th>操作</th></tr></thead>
       <tbody id="mi-body">${body}</tbody></table></div>
     <div class="a-form" style="margin-top:16px;border-top:1px dashed var(--line);padding-top:16px">
       <input type="hidden" id="mi-id">
-      <label>分類<select id="mi-cat">${MenuLib.CATS.map(c => `<option value="${c}">${c}</option>`).join('')}</select></label>
+      <label>店別<select id="mi-venue">${MenuLib.VENUES.map(v => `<option value="${v}">${MenuLib.VENUE_LABEL[v].zh}</option>`).join('')}</select></label>
+      <label>分類<select id="mi-cat">${MenuLib.CATS.map(c => `<option value="${c}">${MenuLib.CAT_LABEL[c].zh}（${c}）</option>`).join('')}</select></label>
       <label>中文<input id="mi-zh" placeholder="品名（中）"></label>
       <label>英文<input id="mi-en" placeholder="ITEM NAME"></label>
       <label>原價<input id="mi-price" type="number" min="0" value="0" style="width:100px"></label>
@@ -1020,6 +1022,7 @@ function paintMenu(){
 
 function resetMenuForm(){
   document.getElementById('mi-id').value = '';
+  document.getElementById('mi-venue').value = 'CAFE';
   document.getElementById('mi-cat').value = 'FOOD';
   ['mi-zh','mi-en','mi-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('mi-price').value = 0;
@@ -1043,6 +1046,7 @@ function bindMenu(){
     const editing = !!document.getElementById('mi-id').value;
     MENU_DOC = MenuLib.upsertItem(MENU_DOC, {
       id: document.getElementById('mi-id').value || undefined,
+      venue: document.getElementById('mi-venue').value,
       cat: document.getElementById('mi-cat').value,
       zh, en: document.getElementById('mi-en').value.trim(),
       price: Number(document.getElementById('mi-price').value) || 0,
@@ -1061,6 +1065,7 @@ function bindMenu(){
   document.querySelectorAll('[data-mi-edit]').forEach(b=>b.onclick=()=>{
     const it = MENU_DOC.items.find(x=>x.id===b.dataset.miEdit); if(!it) return;
     document.getElementById('mi-id').value = it.id;
+    document.getElementById('mi-venue').value = it.venue || 'CAFE';
     document.getElementById('mi-cat').value = it.cat;
     document.getElementById('mi-zh').value = it.zh;
     document.getElementById('mi-en').value = it.en;

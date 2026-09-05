@@ -14,16 +14,17 @@ test('MENU_CONTENT_KEY is menu', () => {
   assert.equal(MENU_CONTENT_KEY, 'menu');
 });
 
-test('stableMenuId is deterministic from cat+en', () => {
+test('stableMenuId is deterministic from venue+cat+en', () => {
   const a = stableMenuId({ cat: 'COFFEE', en: 'AMERICANO', zh: '美式咖啡' });
-  const b = stableMenuId({ cat: 'COFFEE', en: 'AMERICANO', zh: '美式咖啡' });
-  assert.equal(a, 'm_coffee_americano');
+  const b = stableMenuId({ venue: 'CAFE', cat: 'COFFEE', en: 'AMERICANO', zh: '美式咖啡' });
+  assert.equal(a, 'm_cafe_coffee_americano');
+  assert.equal(stableMenuId({ venue: 'BAR', cat: 'ALCOHOL', en: 'NEGRONI' }), 'm_bar_alcohol_negroni');
   assert.equal(a, b);
 });
 
 test('stableMenuId falls back to zh when en empty', () => {
   const id = stableMenuId({ cat: 'FOOD', en: '', zh: '測試餐' });
-  assert.match(id, /^m_food_/);
+  assert.match(id, /^m_cafe_food_/);
 });
 
 test('buildMenuSeedDoc publishes all by default', () => {
@@ -35,7 +36,8 @@ test('buildMenuSeedDoc publishes all by default', () => {
   assert.equal(doc.items.length, 2);
   assert.ok(doc.items.every((i) => i.published === true));
   assert.equal(doc.items[1].alcohol, true);
-  assert.equal(doc.items[0].id, 'm_food_french_fries');
+  assert.equal(doc.items[0].id, 'm_cafe_food_french_fries');
+  assert.equal(doc.items[0].venue, 'CAFE');
   assert.equal(doc.items[0].sort, 10);
   assert.equal(doc.items[1].sort, 20);
 });
@@ -55,6 +57,8 @@ test('shouldWriteMenuSeed: force → write', () => {
 
 test('loadMenuSeedRows reads menu-data.js', () => {
   const rows = loadMenuSeedRows();
-  assert.ok(rows.length >= 20);
-  assert.ok(rows.some((r) => r.zh === '美式咖啡'));
+  assert.ok(rows.length >= 60);
+  assert.ok(rows.some((r) => r.zh === '美式咖啡' && r.venue === 'CAFE'));
+  assert.ok(rows.some((r) => r.zh === '內格羅尼' && r.venue === 'BAR'));
+  assert.ok(rows.every((r) => ['CAFE', 'BAR'].includes(r.venue)));
 });

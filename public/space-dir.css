@@ -89,6 +89,28 @@
   font-size: 1.05rem;
 }
 
+.menu-venue + .menu-venue {
+  margin-top: 56px;
+}
+
+.menu-venue__title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: .04em;
+  margin: 0 0 24px;
+}
+
+.menu-venue__sub {
+  margin-left: .6em;
+  font-family: var(--latin);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .menu-group {
   margin-bottom: 40px;
 }

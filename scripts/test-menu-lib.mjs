@@ -14,6 +14,29 @@ test('CATS includes SNACK', () => {
   assert.ok(M.CATS.includes('COFFEE'));
 });
 
+test('venue defaults to CAFE; sortItems groups CAFE before BAR', () => {
+  const a = M.normalizeItem({ cat: 'COFFEE', zh: 'a', price: 1, emo: 1 });
+  assert.equal(a.venue, 'CAFE');
+  const b = M.normalizeItem({ venue: 'BAR', cat: 'COFFEE', zh: 'b', price: 1, emo: 1 });
+  const sorted = M.sortItems([b, a]);
+  assert.deepEqual(sorted.map(x => x.zh), ['a', 'b']);
+  assert.equal(M.validateDoc({ version: 1, items: [{ ...a, venue: 'XX' }] }).ok, false);
+});
+
+test('renderMenuHtml groups by venue then cat', () => {
+  const items = M.sortItems([
+    M.normalizeItem({ venue: 'BAR', cat: 'ALCOHOL', zh: '琴通寧', en: 'GIN TONIC', price: 250, published: true }),
+    M.normalizeItem({ venue: 'CAFE', cat: 'TEA', zh: '果茶', price: 220, published: true }),
+    M.normalizeItem({ venue: 'CAFE', cat: 'COFFEE', zh: '拿鐵', price: 180, published: true }),
+  ]);
+  const html = M.renderMenuHtml(items, 'zh', '空');
+  assert.ok(html.indexOf('id="menu-cafe"') < html.indexOf('id="menu-bar"'));
+  assert.ok(html.indexOf('拿鐵') < html.indexOf('果茶'));
+  assert.ok(html.includes('menu-notice')); // alcohol present
+  assert.ok(html.includes('<s>') === false); // no member price → no strikethrough
+  assert.equal(M.renderMenuHtml([], 'en', 'Menu coming soon.'), '<p class="menu-empty">Menu coming soon.</p>');
+});
+
 test('normalizeItem forces alcohol for ALCOHOL cat', () => {
   const it = M.normalizeItem({ cat: 'ALCOHOL', zh: '啤酒', price: 200, emo: 150, alcohol: false });
   assert.equal(it.alcohol, true);
