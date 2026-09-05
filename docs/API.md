@@ -190,6 +190,12 @@ X 貼文 AI 起草：body `{ topic }`，回 `{ ok, draft: { title, caption, capt
 ### POST /api/admin/upload/space
 上傳空間介紹圖片。同上限制。回 `{ url }`。
 
+### POST /api/admin/ig/assets/upload
+素材檔案直傳：multipart `file`＋`note`（素材說明必填）→ MinIO `assets/`（未設 S3 則落 `/uploads/social/`）→ 登記 `ig_assets`。回 `{ ok, id, url }`。
+
+### POST /api/admin/upload/menu
+上傳菜單品項圖片（multipart `file`，≤5MB，jpeg/png/webp）。有設 S3 時存 MinIO `assets/menu-*`，否則落 `/uploads/menu/`。回 `{ url }`。
+
 ### POST /api/admin/commitments/:id/confirm
 確認參與款項入帳：`payment_status` → 已付款、`membership_status` → 已啟用、
 使用者 `status` → 已參與，並建立創始會員權益與贈點。

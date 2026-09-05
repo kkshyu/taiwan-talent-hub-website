@@ -51,6 +51,7 @@
       price: Number.isFinite(price) ? price : 0,
       emo: Number.isFinite(emo) ? emo : 0,
       note: String(raw.note || '').trim(),
+      image: String(raw.image || '').trim(),
       alcohol: coerceAlcohol({ ...raw, cat }),
       published: raw.published === true,
       sort: Number.isFinite(Number(raw.sort)) ? Number(raw.sort) : 0,
@@ -76,6 +77,7 @@
       if (!VENUES.includes(it.venue)) return { ok: false, error: '店別無效' };
       if (!CATS.includes(it.cat)) return { ok: false, error: '分類無效' };
       if (!(it.price >= 0) || !(it.emo >= 0)) return { ok: false, error: '價格無效' };
+      if (it.image && !/^(\/uploads\/|https:\/\/)/.test(it.image)) return { ok: false, error: '圖片網址須為 /uploads/ 路徑或 https URL：' + it.zh };
     }
     return { ok: true };
   }
@@ -129,7 +131,8 @@
   /* ---- 前台 HTML（space 頁三語共用） ---- */
   const esc = s => (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const money = n => 'NT$' + Number(n || 0).toLocaleString('zh-TW');
-  const ORIG_LABEL = { zh: '原價', en: 'Was', ja: '定価' };
+  const REGULAR_LABEL = { zh: '一般價', en: 'Regular', ja: '一般価格' };
+  const MEMBER_LABEL = { zh: '會員價', en: 'Member', ja: '会員価格' };
   const pick = (label, lang) => label[lang] || label.zh;
 
   function groupBy(items, key) {
@@ -141,9 +144,11 @@
   function renderItem(item, lang) {
     const showOrig = item.emo > 0 && item.emo !== item.price;
     const priceHtml = showOrig
-      ? '<span class="now">' + money(item.emo) + '</span><span class="orig">' + pick(ORIG_LABEL, lang) + ' <s>' + money(item.price) + '</s></span>'
+      ? '<span class="now">' + pick(MEMBER_LABEL, lang) + ' ' + money(item.emo) + '</span><span class="orig">' + pick(REGULAR_LABEL, lang) + ' ' + money(item.price) + '</span>'
       : '<span class="now">' + money(item.price) + '</span>';
-    return '<li class="menu-item"><div class="menu-item__names">' +
+    return '<li class="menu-item' + (item.image ? ' menu-item--img' : '') + '">' +
+      (item.image ? '<img class="menu-item__img" src="' + esc(item.image) + '" alt="' + esc(item.zh) + '" loading="lazy">' : '') +
+      '<div class="menu-item__names">' +
       '<span class="menu-item__zh">' + esc(item.zh) + '</span>' +
       (item.en ? '<span class="menu-item__en">' + esc(item.en) + '</span>' : '') +
       (item.note ? '<div class="menu-item__note">' + esc(item.note) + '</div>' : '') +

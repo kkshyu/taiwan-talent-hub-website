@@ -37,6 +37,27 @@ test('renderMenuHtml groups by venue then cat', () => {
   assert.equal(M.renderMenuHtml([], 'en', 'Menu coming soon.'), '<p class="menu-empty">Menu coming soon.</p>');
 });
 
+test('member price is shown beside the regular price without crossing either out', () => {
+  const item = M.normalizeItem({ venue: 'CAFE', cat: 'COFFEE', zh: '拿鐵', price: 180, emo: 150, published: true });
+  const labels = { zh: ['會員價', '一般價'], en: ['Member', 'Regular'], ja: ['会員価格', '一般価格'] };
+  for (const [lang, expected] of Object.entries(labels)) {
+    const html = M.renderMenuHtml([item], lang, '');
+    assert.ok(expected.every(label => html.includes(label)), `${lang} price labels`);
+    assert.doesNotMatch(html, /<s>/);
+  }
+});
+
+test('image field: kept, validated, rendered', () => {
+  const it = M.normalizeItem({ cat: 'COFFEE', zh: '拿鐵', price: 180, image: ' https://x.test/a.jpg ', published: true });
+  assert.equal(it.image, 'https://x.test/a.jpg');
+  assert.equal(M.validateDoc({ version: 1, items: [it] }).ok, true);
+  assert.equal(M.validateDoc({ version: 1, items: [{ ...it, image: 'javascript:alert(1)' }] }).ok, false);
+  assert.equal(M.validateDoc({ version: 1, items: [{ ...it, image: '/uploads/menu/a.jpg' }] }).ok, true);
+  const html = M.renderMenuHtml([it], 'zh', '');
+  assert.ok(html.includes('class="menu-item__img" src="https://x.test/a.jpg"'));
+  assert.ok(!M.renderMenuHtml([{ ...it, image: '' }], 'zh', '').includes('menu-item__img'));
+});
+
 test('normalizeItem forces alcohol for ALCOHOL cat', () => {
   const it = M.normalizeItem({ cat: 'ALCOHOL', zh: '啤酒', price: 200, emo: 150, alcohol: false });
   assert.equal(it.alcohol, true);

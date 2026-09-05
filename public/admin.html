@@ -621,6 +621,7 @@ function tabMenu(d){
   const seeded = MENU_SEEDED;
   const items = MenuLib.sortItems(MENU_DOC.items);
   const body = items.map(it => `<tr data-q="${esc([it.venue, it.cat, it.zh, it.en, it.note].join(' ').toLowerCase())}">
+      <td>${it.image ? `<img src="${esc(it.image)}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;display:block">` : ''}</td>
       <td>${esc(MenuLib.VENUE_LABEL[it.venue]?.zh || it.venue)}</td>
       <td>${esc(MenuLib.CAT_LABEL[it.cat]?.zh || it.cat)}</td>
       <td>${esc(it.zh)}</td>
@@ -633,7 +634,7 @@ function tabMenu(d){
         <button class="btn btn--ghost btn-sm" data-mi-edit="${it.id}">編輯</button>
         <button class="btn btn--ghost btn-sm" data-mi-del="${it.id}">刪除</button>
       </td>
-    </tr>`).join('') || '<tr><td colspan="9" class="a-empty">尚無菜單項目</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="10" class="a-empty">尚無菜單項目</td></tr>';
   return `<div class="a-sec">
     <h2>菜單</h2>
     <p class="hint">未發布項目（<span class="pill pill-wait">未發布</span>）不會顯示於空間頁 <code>/space#menu</code>。${seeded ? '目前顯示預設 SEED 資料，尚未寫入資料庫，請按「儲存至伺服器」完成灌入。' : '編輯或刪除項目後，務必按「儲存至伺服器」才會永久保存。'}</p>
@@ -643,7 +644,7 @@ function tabMenu(d){
       <button class="btn btn--solid btn-sm" id="menu-save-server">儲存至伺服器</button>
     </div>
     <div class="a-wrap2"><table class="a-tbl">
-      <thead><tr><th>店別</th><th>分類</th><th>中文</th><th>英文</th><th class="num">原價</th><th class="num">會員價</th><th>酒精</th><th>發布</th><th>操作</th></tr></thead>
+      <thead><tr><th>圖</th><th>店別</th><th>分類</th><th>中文</th><th>英文</th><th class="num">原價</th><th class="num">會員價</th><th>酒精</th><th>發布</th><th>操作</th></tr></thead>
       <tbody id="mi-body">${body}</tbody></table></div>
     <div class="a-form" style="margin-top:16px;border-top:1px dashed var(--line);padding-top:16px">
       <input type="hidden" id="mi-id">
@@ -656,6 +657,15 @@ function tabMenu(d){
       <label>排序<input id="mi-sort" type="number" value="0" style="width:80px"></label>
       <label style="flex:1;min-width:180px">備註<input id="mi-note" placeholder="例：含酒精 / 黑糖 / 焦糖"></label>
       <label style="flex-direction:row;align-items:center;gap:.4em"><input type="checkbox" id="mi-alcohol" style="width:auto">含酒精</label>
+      <label style="width:100%">圖片
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-top:.4em">
+          <img id="prev-mi-image" src="" alt="" style="width:72px;height:72px;object-fit:cover;border:1px solid var(--line);border-radius:8px;background:var(--card);display:none">
+          <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:.4em">
+            <input id="mi-image" placeholder="圖片網址（或直接上傳）">
+            <input type="file" accept="image/*" data-space-upload="menu" data-upload-url="/api/admin/upload/menu" data-target="mi-image" data-preview="prev-mi-image">
+          </div>
+        </div>
+      </label>
       <label style="flex-direction:row;align-items:center;gap:.4em"><input type="checkbox" id="mi-published" style="width:auto">發布至前台</label>
     </div>
     <div class="a-form" style="align-items:center">
@@ -965,7 +975,7 @@ function bind(d, x){
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const r = await fetch('/api/admin/upload/space', {
+      const r = await fetch(input.dataset.uploadUrl || '/api/admin/upload/space', {
         method: 'POST',
         headers: token ? { Authorization: 'Bearer ' + token } : {},
         body: fd,
@@ -974,7 +984,7 @@ function bind(d, x){
       if (!r.ok) throw new Error(data.error || ('上傳失敗（' + r.status + '）'));
       if (targetEl) targetEl.value = data.url;
       if (previewEl) { previewEl.src = data.url; previewEl.style.display = ''; }
-      toast('已上傳圖片，記得按「儲存所有網站內容」');
+      toast(input.dataset.uploadUrl ? '已上傳圖片，記得按「新增／更新項目」再「儲存至伺服器」' : '已上傳圖片，記得按「儲存所有網站內容」');
     } catch (e) {
       toast(e.message);
     } finally {
@@ -1025,7 +1035,8 @@ function resetMenuForm(){
   document.getElementById('mi-id').value = '';
   document.getElementById('mi-venue').value = 'CAFE';
   document.getElementById('mi-cat').value = 'FOOD';
-  ['mi-zh','mi-en','mi-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['mi-zh','mi-en','mi-note','mi-image'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const pv=document.getElementById('prev-mi-image'); if(pv){ pv.src=''; pv.style.display='none'; }
   document.getElementById('mi-price').value = 0;
   document.getElementById('mi-emo').value = 0;
   document.getElementById('mi-sort').value = 0;
@@ -1053,6 +1064,7 @@ function bindMenu(){
       price: Number(document.getElementById('mi-price').value) || 0,
       emo: Number(document.getElementById('mi-emo').value) || 0,
       note: document.getElementById('mi-note').value.trim(),
+      image: document.getElementById('mi-image').value.trim(),
       alcohol: document.getElementById('mi-alcohol').checked,
       published: document.getElementById('mi-published').checked,
       sort: Number(document.getElementById('mi-sort').value) || 0,
@@ -1074,6 +1086,8 @@ function bindMenu(){
     document.getElementById('mi-emo').value = it.emo;
     document.getElementById('mi-sort').value = it.sort;
     document.getElementById('mi-note').value = it.note;
+    document.getElementById('mi-image').value = it.image || '';
+    { const pv=document.getElementById('prev-mi-image'); pv.src = it.image || ''; pv.style.display = it.image ? '' : 'none'; }
     document.getElementById('mi-alcohol').checked = !!it.alcohol;
     document.getElementById('mi-published').checked = !!it.published;
     document.getElementById('mi-save').textContent = '更新項目';
