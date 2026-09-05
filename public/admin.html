@@ -639,6 +639,7 @@ function tabMenu(d){
     <p class="hint">未發布項目（<span class="pill pill-wait">未發布</span>）不會顯示於空間頁 <code>/space#menu</code>。${seeded ? '目前顯示預設 SEED 資料，尚未寫入資料庫，請按「儲存至伺服器」完成灌入。' : '編輯或刪除項目後，務必按「儲存至伺服器」才會永久保存。'}</p>
     <div class="a-toolbar">
       <input type="search" id="mi-search" placeholder="搜尋店別 / 分類 / 中文 / 英文 / 備註…">
+      <button class="btn btn--ghost btn-sm" id="menu-load-seed" title="以 menu-data.js 的預設菜單取代目前清單（需再按儲存）">載入預設菜單</button>
       <button class="btn btn--solid btn-sm" id="menu-save-server">儲存至伺服器</button>
     </div>
     <div class="a-wrap2"><table class="a-tbl">
@@ -1084,6 +1085,18 @@ function bindMenu(){
     MENU_DOC = MenuLib.removeItem(MENU_DOC, b.dataset.miDel);
     MENU_DIRTY = true;
     toast('已刪除（尚未存檔）');
+    paintMenu();
+  });
+
+  on('menu-load-seed','click',()=>{
+    const seed = window.__MENU_SEED || [];
+    if (!seed.length){ toast('找不到預設菜單資料'); return; }
+    if (!confirm(`以預設菜單（${seed.length} 項，全部已發布）取代目前清單？需再按「儲存至伺服器」才會生效。`)) return;
+    const doc = MenuLib.fromSeedRows(seed);
+    doc.items = doc.items.map(it => ({ ...it, published: true }));
+    MENU_DOC = doc;
+    MENU_DIRTY = true;
+    toast('已載入預設菜單（尚未存檔）');
     paintMenu();
   });
 
