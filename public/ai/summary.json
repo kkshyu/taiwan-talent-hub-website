@@ -1,0 +1,42 @@
+{
+  "name": "言文字｜台灣人才聚落 Taiwan Talent Hub",
+  "alternateName": [
+    "emoji — Taiwan Talent Hub",
+    "Taiwan Talent Hub",
+    "言文字",
+    "言文字｜台灣人才聚落"
+  ],
+  "description": "言文字｜台灣人才聚落位於台北車站 Z10 出口斜對面。1F 用餐會客不需會員；2F、3F 工作方案 4 小時 NT$200、12 小時 NT$500；3F 可申請團隊活動與社群聚會。預計 2026-10-13 試營運、2026-11-01 正式開幕。",
+  "url": "https://www.emoji.tw/",
+  "inLanguage": ["zh-Hant", "en", "ja"],
+  "opening": {
+    "softOpen": "2026-10-13",
+    "grandOpen": "2026-11-01"
+  },
+  "address": {
+    "streetAddress": "重慶南路一段 11 號",
+    "addressLocality": "中正區",
+    "addressRegion": "台北市",
+    "postalCode": "100",
+    "addressCountry": "TW"
+  },
+  "geo": {
+    "latitude": 25.046198,
+    "longitude": 121.51342
+  },
+  "telephone": "+886-921-102-067",
+  "email": "us@emoji.tw",
+  "sameAs": [
+    "https://www.instagram.com/emoji0701",
+    "https://dna.org.tw",
+    "https://maps.app.goo.gl/aFdoEB3RhweCqLbQ9"
+  ],
+  "canonicalFacts": "https://www.emoji.tw/llms.txt",
+  "sitemap": "https://www.emoji.tw/sitemap.xml",
+  "locales": {
+    "zh-Hant": "https://www.emoji.tw/",
+    "en": "https://www.emoji.tw/en/",
+    "ja": "https://www.emoji.tw/ja/"
+  },
+  "dateModified": "2026-09-06"
+}

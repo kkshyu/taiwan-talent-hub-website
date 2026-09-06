@@ -1,0 +1,18 @@
+# AI / answer-engine discovery for emoji.tw
+# Brand: 言文字｜台灣人才聚落 / emoji — Taiwan Talent Hub
+# Facts source of truth for agents: /llms.txt and /ai/*.json
+
+User-Agent: *
+Allow: /
+
+# Preferred machine-readable surfaces
+llms-txt: https://www.emoji.tw/llms.txt
+llms-full-txt: https://www.emoji.tw/llms-full.txt
+summary: https://www.emoji.tw/ai/summary.json
+faq: https://www.emoji.tw/ai/faq.json
+service: https://www.emoji.tw/ai/service.json
+sitemap: https://www.emoji.tw/sitemap.xml
+feed: https://www.emoji.tw/feed.xml
+
+Contact: us@emoji.tw
+Phone: +886-921-102-067

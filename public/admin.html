@@ -390,7 +390,7 @@ function tabMembers(d, x){
       <td>${esc(u.name||'—')}</td>
       <td class="a-mono">${esc(u.email||'—')}</td>
       <td class="a-mono">${esc(u.phone||'')}</td>
-      <td>${u.access_active?'<span class="pill pill-ok">Active</span>':'<span class="pill pill-wait">—</span>'}</td>
+      <td>${u.access_active?'<span class="pill pill-ok">門禁有效</span>':'<span class="pill pill-wait">—</span>'}</td>
       <td class="num">${u.points_balance != null ? Number(u.points_balance) : '—'}</td>
       <td>${esc(u.access_summary||'—')}</td>
       <td>${c?'<span class="pill pill-ok">'+esc(status)+'</span>':'<span class="pill pill-wait">尚未加入</span>'}</td>
@@ -400,13 +400,13 @@ function tabMembers(d, x){
   }).join('') || '<tr><td colspan="9" class="a-empty">尚無使用者</td></tr>';
   return `<div class="a-sec">
     <h2>會員名單</h2>
-    <p class="hint">所有以 Google 登入或已建立的使用者；含門禁 Active、點數餘額、權益摘要、會籍狀態與會員編號。</p>
+    <p class="hint">所有以 Google 登入或已建立的使用者；含門禁狀態、點數餘額、權益摘要、會籍狀態與會員編號。</p>
     <div class="a-toolbar">
       <input type="search" id="m-search" placeholder="搜尋姓名 / Email / 電話…">
       <button class="btn btn--ghost btn-sm" id="m-csv">匯出 CSV</button>
     </div>
     <div class="a-wrap2"><table class="a-tbl">
-      <thead><tr><th>姓名</th><th>Email</th><th>電話</th><th>Active</th><th class="num">點數</th><th>權益摘要</th><th>創始狀態</th><th>會員編號</th><th class="num">加入日</th></tr></thead>
+      <thead><tr><th>姓名</th><th>Email</th><th>電話</th><th>門禁狀態</th><th class="num">點數</th><th>權益摘要</th><th>創始狀態</th><th>會員編號</th><th class="num">加入日</th></tr></thead>
       <tbody id="m-body">${body}</tbody></table></div>
     <h3 class="sp-h3">發放點數</h3>
     <p class="hint">贈點預設一年效期；可自訂到期日。備註必填。</p>
@@ -884,9 +884,9 @@ function bind(d, x){
   on('m-search','input',e=>{ const qv=e.target.value.trim().toLowerCase();
     document.querySelectorAll('#m-body tr').forEach(tr=>{ const qq=(tr.dataset.q||'').toLowerCase();
       tr.style.display = !qv || qq.includes(qv) ? '' : 'none'; }); });
-  on('m-csv','click',()=>{ const rows=[['姓名','Email','電話','Active','點數','權益摘要','創始狀態','會員編號','加入日']];
+  on('m-csv','click',()=>{ const rows=[['姓名','Email','電話','門禁狀態','點數','權益摘要','創始狀態','會員編號','加入日']];
     (d.users||[]).forEach(u=>{ const c=x.cByUser[u.id];
-      rows.push([u.name||'', u.email||'', u.phone||'', u.access_active?'Active':'', u.points_balance!=null?String(u.points_balance):'', u.access_summary||'—', c?(c.membership_status||''):'尚未加入', c?c.cert_no:'', u.created_at||'']); });
+      rows.push([u.name||'', u.email||'', u.phone||'', u.access_active?'有效':'', u.points_balance!=null?String(u.points_balance):'', u.access_summary||'—', c?(c.membership_status||''):'尚未加入', c?c.cert_no:'', u.created_at||'']); });
     downloadCSV('會員名單.csv', rows); });
   on('pg-go','click',()=>{
     const user_id=((document.getElementById('pg-uid')||{}).value||'').trim();

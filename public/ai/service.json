@@ -1,0 +1,53 @@
+{
+  "name": "言文字｜台灣人才聚落 Taiwan Talent Hub",
+  "url": "https://www.emoji.tw/",
+  "description": "台北車站旁三層人才聚落：1F 餐飲會客、2F／3F 會員工作與活動空間。",
+  "dateModified": "2026-09-06",
+  "capabilities": [
+    {
+      "name": "1F dining and client meetings",
+      "description": "在咖啡（at cafe）與三點水（3AM）用餐、會客，不需會員。"
+    },
+    {
+      "name": "Day membership 4 hours",
+      "description": "單日會籍 4 小時 NT$200，可使用 2F／3F。",
+      "price": "200",
+      "priceCurrency": "TWD"
+    },
+    {
+      "name": "Day membership 12 hours",
+      "description": "單日會籍 12 小時 NT$500，可使用 2F／3F。",
+      "price": "500",
+      "priceCurrency": "TWD"
+    },
+    {
+      "name": "Monthly / quarterly / annual membership",
+      "description": "月 NT$4,000、季 NT$10,000、年 NT$35,000（含贈點），可使用 2F／3F。"
+    },
+    {
+      "name": "Founding Member",
+      "description": "NT$35,000＝18 個月會籍＋贈點 20,000（一年效期），限量 100 名，售至 2026-12-31。",
+      "url": "https://www.emoji.tw/fellow"
+    },
+    {
+      "name": "3F event venue application",
+      "description": "三樓可申請團隊活動與社群聚會；送出申請不等於預約成立。",
+      "url": "https://www.emoji.tw/event-application"
+    },
+    {
+      "name": "Community collaboration",
+      "description": "社群合作與場地租借洽談。",
+      "url": "https://www.emoji.tw/partner"
+    },
+    {
+      "name": "Startup support",
+      "description": "公司登記、產品場域驗證、顧問輔導三項服務（梯次滾動）。",
+      "url": "https://www.emoji.tw/startup"
+    }
+  ],
+  "contactPoint": {
+    "email": "us@emoji.tw",
+    "telephone": "+886-921-102-067",
+    "availableLanguage": ["zh-Hant", "en", "ja"]
+  }
+}

@@ -3,20 +3,13 @@
     <a class="brand" href="/" aria-label="言文字｜台灣人才聚落 首頁">
       <b>言文字</b><span>台灣人才聚落</span>
     </a>
-    <nav class="site-nav__links" id="navLinks" aria-label="聚落計畫">
-      <a href="/about"{{NAV_ABOUT_CURRENT}}>關於聚落</a>
-      <a href="/system"{{NAV_SYSTEM_CURRENT}}>消費方式</a>
-      <a href="/space"{{NAV_SPACE_CURRENT}}>空間介紹</a>
+    <nav class="site-nav__links" id="navLinks" aria-label="主要導覽">
+      <a href="/space"{{NAV_SPACE_CURRENT}}>空間與餐飲</a>
+      <a href="/system"{{NAV_SYSTEM_CURRENT}}>會員方案</a>
       <a href="/events"{{NAV_EVENTS_CURRENT}}>活動</a>
-      <div class="site-nav__dd">
-        <button type="button" class="site-nav__dd-top" aria-haspopup="true" aria-expanded="false">聚落計畫 <svg class="site-nav__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="site-nav__menu">
-          <a href="/fellow"{{NAV_FELLOW_CURRENT}}>創始會員計畫</a>
-          <a href="/partner"{{NAV_PARTNER_CURRENT}}>社群合作</a>
-          <a href="/startup"{{NAV_STARTUP_CURRENT}}>新創輔導</a>
-        </div>
-      </div>
-      <a href="/cis/"{{NAV_CIS_CURRENT}}>企業識別</a>
+      <a href="/partner"{{NAV_PARTNER_CURRENT}}>活動場地</a>
+      <a href="/access"{{NAV_ACCESS_CURRENT}}>交通</a>
+      <a href="/about"{{NAV_ABOUT_CURRENT}}>關於</a>
       <a href="/member" id="navMember" data-label-authed="會員專區"{{NAV_MEMBER_CURRENT}}>會員登入</a>
       <div class="site-nav__dd site-nav__lang">
         <button type="button" class="site-nav__dd-top" aria-haspopup="true" aria-expanded="false" aria-label="切換語言">
@@ -30,7 +23,7 @@
           <a href="{{LANG_JA}}" hreflang="ja" lang="ja"{{LANG_JA_CURRENT}}>日本語</a>
         </div>
       </div>
-      <a href="https://www.instagram.com/emoji0701" target="_blank" rel="noopener" class="btn">追蹤我們</a>
+      <a href="/fellow" class="btn"{{NAV_FELLOW_CURRENT}}>創始會員</a>
     </nav>
     <button class="site-nav__toggle" id="navToggle" aria-label="開啟選單" data-label-open="開啟選單" data-label-close="關閉選單" aria-controls="navLinks" aria-expanded="false">☰</button>
   </div>

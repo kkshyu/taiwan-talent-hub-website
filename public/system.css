@@ -40,6 +40,20 @@
   border-left: 1px solid var(--line);
 }
 
+.system-mode::before {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+  background: center / contain no-repeat;
+}
+
+.system-mode:nth-child(1)::before { background-image: url('/cis/assets/moji/moji-coffee.svg'); }
+.system-mode:nth-child(2)::before { background-image: url('/cis/assets/moji/moji-remote.svg'); }
+.system-mode:nth-child(3)::before { background-image: url('/cis/assets/moji/moji-rest.svg'); }
+.system-mode:nth-child(4)::before { background-image: url('/cis/assets/moji/moji-meet.svg'); }
+
 .system-mode h3 {
   margin: 0 0 8px;
   font-family: var(--serif);
@@ -98,6 +112,66 @@
 
 @media (max-width: 900px) {
   .system-modes { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 760px) {
+  .membership-table,
+  .membership-table tbody,
+  .membership-table tr,
+  .membership-table td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .membership-table { overflow: visible; }
+
+  .membership-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .membership-table tr {
+    margin-bottom: 14px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+  }
+
+  .membership-table td {
+    display: grid;
+    grid-template-columns: minmax(6em, 34%) 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  .membership-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .membership-table td:first-child {
+    display: block;
+    padding: 0 0 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .membership-table td:first-child::before { display: none; }
 }
 
 @media (max-width: 560px) {

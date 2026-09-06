@@ -1,7 +1,52 @@
 # 言文字｜台灣人才聚落 Taiwan Talent Hub
-# 允許所有爬蟲（含 AI／答案引擎）索引
+# 允許所有爬蟲（含 AI／答案引擎）索引；citation bots 另列明確規則
+
 User-agent: *
 Allow: /
 
-# 正式網址以 emoji 子網域為準
+# Citation / answer-engine bots（明確允許，供 GEO 評分）
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# 其他常見 AI bots
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# 正式網址以 www.emoji.tw 為準
 Sitemap: https://www.emoji.tw/sitemap.xml

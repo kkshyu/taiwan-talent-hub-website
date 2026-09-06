@@ -7,96 +7,144 @@
 
   var I18N = {
     zh: {
-      intro: '三層樓＋附屬設施',
+      intro: '今天要做什麼？選一層開始',
       close: '收合',
-      nos: { 1: '1F', 2: '2F', 3: '3F', 4: '附屬' },
+      nos: { 1: '1F', 2: '2F', 3: '3F', 4: '頂樓' },
       menuTitle: '餐飲菜單 Menu',
       areas: {
         1: '在咖啡／三點水 · 約 25.2 坪',
         2: '等等空間 · 約 29.5 坪',
         3: '等等空間 · 約 29.9 坪',
-        4: '附屬設施 · 洗衣／吸菸區',
+        4: '頂樓 · 洗衣／戶外吸菸區',
       },
       names: {
         1: '在咖啡（at cafe）／三點水（3AM）',
-        2: '等等空間 · 24 小時看書休憩',
-        3: '等等空間 · 共享辦公與活動',
-        4: '附屬設施',
+        2: '等等空間 · 會員休息與淋浴',
+        3: '等等空間 · 工作與活動',
+        4: '頂樓附屬設施',
       },
       kickers: {
-        1: 'Public hospitality',
-        2: 'Members only',
-        3: 'Coworking & events',
-        4: 'Auxiliary · laundry & smoking',
+        1: '用餐 · 咖啡 · 會客',
+        2: '會員休息 · 淋浴',
+        3: '工作 · 社群／企業活動',
+        4: '會員附屬設施',
       },
       hints: {
-        1: '外帶、廚房、吧台、客席、駐唱',
-        2: '榻榻米娛樂室、lattice／沙發、淋浴廁所',
-        3: '投影、移動桌椅、自助吧、廁所',
-        4: '洗衣烘衣與陽台水塔',
+        1: '早餐與咖啡、晚餐與深夜熱食',
+        2: '看書休息、膠囊席、娛樂室與淋浴',
+        3: '個人工作、社群活動與企業包場',
+        4: '洗衣與戶外吸菸區',
       },
+      factLabels: { use: '用途', hours: '時段', eligibility: '使用資格', price: '費用' },
+      facts: {
+        1: { use: '用餐、外帶與深夜熱食', hours: '在咖啡 08:00–17:30；三點水 18:00–翌日 03:00', eligibility: '所有訪客，不需會員', price: '依菜單；分一般價與會員價', href: '/space#menu', cta: '查看一樓菜單' },
+        2: { use: '看書休憩、膠囊席、娛樂室與淋浴', hours: '24 小時（條件式啟用）', eligibility: '會員；付費設施須持有效會籍', price: '淋浴 70 點／次；膠囊席、娛樂室各 100 點／小時', href: '/system', cta: '比較會員方案' },
+        3: { use: '共享辦公、社群活動與企業包場', hours: '約 08:00–翌日 03:00；包場時段另議', eligibility: '會員可日常使用；社群活動可填申請；企業、團隊或客戶包場請來信', price: '會員使用或包場方案', href: '/event-application', cta: '申請三樓社群活動', secondaryHref: 'mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry', secondaryCta: '洽詢企業／團隊包場' },
+        4: { use: '洗衣與戶外吸菸區', hours: '使用時段尚未公告', eligibility: '會員；非會員採臨時通行', price: '費用尚未公告', href: 'mailto:us@emoji.tw?subject=附屬設施使用詢問', cta: '詢問使用方式' },
+      },
+      imageLabel: '空間影像',
+      conceptCaptions: { 1: '一樓用餐區規劃示意', 2: '二樓膠囊休憩席規劃示意', 3: '三樓共享辦公與活動空間規劃示意' },
     },
     en: {
-      intro: 'Three floors + auxiliary facilities',
+      intro: 'What do you need today? Start with a floor',
       close: 'Close',
-      nos: { 1: '1F', 2: '2F', 3: '3F', 4: 'AUX' },
+      nos: { 1: '1F', 2: '2F', 3: '3F', 4: 'ROOF' },
       menuTitle: 'Menu',
       areas: {
         1: 'at cafe / 3AM · ~25.2 ping',
         2: 'Stay Square · ~29.5 ping',
         3: 'Stay Square · ~29.9 ping',
-        4: 'Auxiliary · laundry / smoking area',
+        4: 'Rooftop · laundry / outdoor smoking area',
       },
       names: {
         1: '在咖啡 (at cafe) / 三點水 (3AM)',
-        2: 'Stay Square · 24-hour reading & rest',
-        3: 'Stay Square · coworking & events',
-        4: 'Auxiliary facilities',
+        2: 'Stay Square · member rest & showers',
+        3: 'Stay Square · work & events',
+        4: 'Rooftop facilities',
       },
       kickers: {
-        1: 'Public hospitality',
-        2: 'Members only',
-        3: 'Coworking & events',
-        4: 'Auxiliary · laundry & smoking',
+        1: 'Dining · coffee · client meetings',
+        2: 'Member rest · showers',
+        3: 'Work · community / business events',
+        4: 'Member facilities',
       },
       hints: {
-        1: 'Takeout, kitchen, bar counter, seats, stage',
-        2: 'Tatami lounge, lattice/sofa, shower',
-        3: 'Screen, desks, snack bar, toilet',
-        4: 'Laundry and terrace tanks',
+        1: 'Breakfast and coffee, dinner and late-night food',
+        2: 'Reading, rest seats, game room and showers',
+        3: 'Solo work, community events and business private hire',
+        4: 'Laundry and outdoor smoking area',
       },
+      factLabels: { use: 'Use', hours: 'Hours', eligibility: 'Access', price: 'Price' },
+      facts: {
+        1: { use: 'Dining, takeaway and late-night food', hours: '在咖啡 08:00–17:30; 三點水 18:00–03:00 next day', eligibility: 'Open to everyone; no membership required', price: 'See menu; standard and member prices', href: '/en/space#menu', cta: 'View the 1F menu' },
+        2: { use: 'Reading, rest, capsule seats, game room and showers', hours: '24 hours (conditional)', eligibility: 'Members; paid facilities require a valid membership', price: 'A shower costs 70 points per use. Capsule seats and the game room each cost 100 points per hour.', href: '/en/system', cta: 'Compare memberships' },
+        3: { use: 'Coworking, community events and business private hire', hours: 'About 08:00–03:00 next day; private events by arrangement', eligibility: 'Members use it day to day. Community events may use the application form; companies, teams and client-event organizers should email us.', price: 'Membership or private venue plan', href: '/en/event-application', cta: 'Apply for a 3F community event', secondaryHref: 'mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry', secondaryCta: 'Email about business or team hire' },
+        4: { use: 'Laundry and outdoor smoking area', hours: 'Hours to be announced', eligibility: 'Members; temporary access for non-members', price: 'Price to be announced', href: 'mailto:us@emoji.tw?subject=Rooftop%20facilities', cta: 'Ask about access' },
+      },
+      imageLabel: 'Space image',
+      conceptCaptions: { 1: '1F dining area · concept rendering', 2: '2F capsule rest seats · concept rendering', 3: '3F coworking and event space · concept rendering' },
     },
     ja: {
-      intro: '3フロア＋附属施設',
+      intro: '今日の目的に合うフロアを選ぶ',
       close: '閉じる',
-      nos: { 1: '1F', 2: '2F', 3: '3F', 4: '附属' },
+      nos: { 1: '1F', 2: '2F', 3: '3F', 4: '屋上' },
       menuTitle: 'メニュー Menu',
       areas: {
         1: '在咖啡／三點水 · 約25.2坪',
         2: '等等空間 · 約29.5坪',
         3: '等等空間 · 約29.9坪',
-        4: '附属施設 · 洗濯／喫煙エリア',
+        4: '屋上 · ランドリー／屋外喫煙エリア',
       },
       names: {
         1: '在咖啡（at cafe）／三點水（3AM）',
-        2: '等等空間 · 24時間の読書と休憩',
-        3: '等等空間 · コワーキング＆イベント',
-        4: '附属施設',
+        2: '等等空間 · 会員の休憩・シャワー',
+        3: '等等空間 · 仕事・イベント',
+        4: '屋上附属施設',
       },
       kickers: {
-        1: 'Public hospitality',
-        2: 'Members only',
-        3: 'Coworking & events',
-        4: 'Auxiliary · laundry & smoking',
+        1: '食事 · コーヒー · 打ち合わせ',
+        2: '会員の休憩 · シャワー',
+        3: '仕事 · コミュニティ／企業イベント',
+        4: '会員向け附属施設',
       },
       hints: {
-        1: 'テイクアウト・厨房・バーカウンター・客席・ステージ',
-        2: '畳ラウンジ・lattice／ソファ・シャワー',
-        3: '投影・可動デスク・セルフバー・トイレ',
-        4: '洗濯乾燥とテラス水塔',
+        1: '朝食とコーヒー、夕食と深夜の食事',
+        2: '読書、休憩席、ゲームルーム、シャワー',
+        3: '個人作業、コミュニティイベント、企業貸切',
+        4: 'ランドリーと屋外喫煙エリア',
       },
+      factLabels: { use: '用途', hours: '利用時間', eligibility: '利用条件', price: '料金' },
+      facts: {
+        1: { use: '飲食、テイクアウト、深夜の食事', hours: '在咖啡 08:00–17:30／三點水 18:00–翌03:00', eligibility: 'どなたでも利用可。会員登録不要', price: 'メニュー参照。通常価格と会員価格', href: '/ja/space#menu', cta: '1Fメニューを見る' },
+        2: { use: '読書、休憩、カプセル席、ゲームルーム、シャワー', hours: '24時間（条件付き）', eligibility: '会員。ポイント施設は有効な会員資格が必要', price: 'シャワーは1回70ポイント、カプセル席・ゲームルームは各1時間100ポイント', href: '/ja/system', cta: '会員プランを比較' },
+        3: { use: 'コワーキング、コミュニティイベント、企業貸切', hours: '約08:00–翌03:00。貸切は個別調整', eligibility: '日常利用は会員向け。コミュニティ活動は会場利用申請、企業・チーム・顧客向けイベントの貸切はメールでお問い合わせください。', price: '会員プランでの利用または貸切プラン', href: '/ja/event-application', cta: '3Fコミュニティ活動を申請', secondaryHref: 'mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry', secondaryCta: '企業・チーム貸切を問い合わせる' },
+        4: { use: 'ランドリーと屋外喫煙エリア', hours: '利用時間は後日案内', eligibility: '会員。非会員は一時通行', price: '料金は後日案内', href: 'mailto:us@emoji.tw?subject=附属施設について', cta: '利用方法を問い合わせる' },
+      },
+      imageLabel: 'スペース画像',
+      conceptCaptions: { 1: '1F飲食エリア · 完成イメージ', 2: '2Fカプセル休憩席 · 完成イメージ', 3: '3Fコワーキング・イベントスペース · 完成イメージ' },
     },
   };
+
+  var DEFAULT_IMAGES = {
+    1: { src: '/assets/space/1f-concept.jpg', width: 1200, height: 746 },
+    2: { src: '/assets/space/2f-concept.jpg', width: 1200, height: 743 },
+    3: { src: '/assets/space/3f-concept.jpg', width: 1400, height: 845 },
+  };
+
+  function normalizePublicCopy(raw, lang) {
+    if (lang === 'zh') return raw.replace('24 小時看書休憩席', '24 小時（條件式啟用）看書休憩席');
+    if (lang === 'en') return raw.replace('24-hour reading and rest seats', 'Reading and rest seats with 24-hour access (conditional)');
+    return raw.replace('24時間の読書・休憩席', '読書・休憩席（24時間利用は条件付き）');
+  }
+
+  function renderFacts(t, floor) {
+    var f = t.facts[floor];
+    if (!f) return '';
+    return '<dl>' + ['use', 'hours', 'eligibility', 'price'].map(function (key) {
+      return '<div><dt>' + t.factLabels[key] + '</dt><dd>' + f[key] + '</dd></div>';
+    }).join('') + '</dl><a class="space-panel__next" href="' + f.href + '">' + f.cta + ' →</a>' +
+      (f.secondaryHref ? '<br><a class="space-panel__next" href="' + f.secondaryHref + '">' + f.secondaryCta + ' →</a>' : '');
+  }
 
   /** 等角：長屋進深沿 y，面寬沿 x */
   function iso(x, y, z) {
@@ -383,6 +431,7 @@
     var no = this.panel.querySelector('[data-panel-no]');
     var title = this.panel.querySelector('[data-panel-title]');
     var md = this.panel.querySelector('[data-panel-md]');
+    var facts = this.panel.querySelector('[data-panel-facts]');
     var media = this.panel.querySelector('[data-panel-media]');
     var menuWrap = this.panel.querySelector('[data-panel-menu]');
     var menuBody = this.panel.querySelector('[data-panel-menu-body]');
@@ -394,6 +443,8 @@
     var key = 'space_' + floor + 'f_' + this.lang;
     var raw = String(this.content[key] || '').trim();
     if (!raw && this.lang === 'zh') raw = String(this.content['space_' + floor + 'f'] || '').trim();
+    raw = normalizePublicCopy(raw, this.lang);
+    if (facts) facts.innerHTML = renderFacts(t, floor);
     if (md) {
       if (raw && global.marked && global.DOMPurify) {
         md.innerHTML = global.DOMPurify.sanitize(global.marked.parse(raw), { USE_PROFILES: { html: true } });
@@ -402,12 +453,25 @@
       else md.innerHTML = '<p class="menu-empty">…</p>';
     }
 
-    var imgUrl = String(this.content['space_' + floor + 'f_image'] || '').trim();
+    var customImgUrl = String(this.content['space_' + floor + 'f_image'] || '').trim();
+    var fallbackImage = DEFAULT_IMAGES[floor];
+    var imgUrl = customImgUrl || (fallbackImage && fallbackImage.src) || '';
     if (media) {
       if (imgUrl) {
         media.hidden = false;
         var img = media.querySelector('img');
-        if (img) img.src = imgUrl;
+        var caption = media.querySelector('figcaption');
+        if (img) {
+          img.src = imgUrl;
+          img.alt = customImgUrl ? t.imageLabel : t.conceptCaptions[floor];
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          if (!customImgUrl && fallbackImage) {
+            img.width = fallbackImage.width;
+            img.height = fallbackImage.height;
+          }
+        }
+        if (caption) caption.textContent = customImgUrl ? t.imageLabel : t.conceptCaptions[floor];
       } else {
         media.hidden = true;
       }

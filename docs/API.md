@@ -60,6 +60,8 @@ curl -H "Authorization: Bearer $ADMIN_API_KEY" https://www.emoji.tw/api/state
 點數方案定價表。回 `{ price_twd, packs }`。
 
 ### POST /api/checkout
+所有結帳、活動付款、點數購買、退款與 webhook 都必須使用 Stripe「Emoji 言文字」帳號 `acct_1Ts2y95NXMKDsl40`。
+
 建立 Stripe 結帳（購買創始會籍）。body：`{ lang }`。回 `{ url }`。未設 `STRIPE_SECRET_KEY` 或 DB 未就緒時回 503；超過 `SALE_END`（預設 2026-12-31）回 410。已付款與有效結帳保留名額合計達 `MAX_PARTICIPANTS`（預設 100）回 409。新 checkout 保留 30 分鐘；以 Postgres 交易鎖序列化所有 instance 的名額盤點與建立。
 
 ### GET /api/checkout/verify

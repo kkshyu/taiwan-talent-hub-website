@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const {
-  composeLayout, localePaths, resolvePublicHtml, MARKER_HEADER, MARKER_FOOTER,
+  composeLayout, composeEventMeta, localePaths, resolvePublicHtml, MARKER_HEADER, MARKER_FOOTER,
 } = require('../lib/layout.js');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -101,6 +101,37 @@ test('composeLayout event list and detail mark events current', () => {
   assert.equal(localePaths('/ja/events/private-demo').ja, '/ja/events/private-demo');
 });
 
+test('shared event pages return localized metadata before JavaScript runs', () => {
+  const raw = `<!doctype html><html lang="zh-Hant"><head><title>活動</title><meta name="description" content="中文"></head><body>${MARKER_HEADER}${MARKER_FOOTER}</body></html>`;
+  const list = composeLayout(raw, '/en/events');
+  assert.match(list, /<html lang="en">/);
+  assert.match(list, /<title>Events \| emoji/);
+  assert.match(list, /canonical" href="https:\/\/www\.emoji\.tw\/en\/events"/);
+  assert.match(list, /hreflang="zh-Hant" href="https:\/\/www\.emoji\.tw\/events"/);
+  assert.match(list, /property="og:title" content="Events/);
+
+  const application = composeLayout(raw, '/ja/event-application');
+  assert.match(application, /<html lang="ja">/);
+  assert.match(application, /<title>3Fコミュニティイベント会場の利用申請/);
+  assert.match(application, /canonical" href="https:\/\/www\.emoji\.tw\/ja\/event-application"/);
+});
+
+test('public event detail has event metadata and safe JSON-LD', () => {
+  const raw = `<!doctype html><html lang="zh-Hant"><head><title>活動</title><meta name="description" content="中文"></head><body>${MARKER_HEADER}${MARKER_FOOTER}</body></html>`;
+  const base = composeLayout(raw, '/en/events/demo');
+  const html = composeEventMeta(base, {
+    title: 'Meet <Build>', description: 'A practical meetup.', visibility: 'public',
+    location: '3F', starts_at_iso: '2026-11-08T14:00', ends_at_iso: '2026-11-08T16:00', price_twd: 200,
+  }, '/en/events/demo');
+  assert.match(html, /<title>Meet &lt;Build&gt;｜Events/);
+  assert.match(html, /property="og:type" content="event"/);
+  assert.match(html, /"@type":"Event"/);
+  assert.match(html, /"startDate":"2026-11-08T14:00:00\+08:00"/);
+  assert.match(html, /"price":200/);
+  assert.doesNotMatch(html, /<title>Meet <Build>/);
+  assert.equal(composeEventMeta(base, { visibility: 'private' }, '/en/events/private'), base);
+});
+
 test('composeLayout injects header and footer with aria-current', () => {
   const raw = `<!doctype html><body>${MARKER_HEADER}<main></main>${MARKER_FOOTER}</body>`;
   const html = composeLayout(raw, '/en/fellow');
@@ -123,24 +154,29 @@ test('resolvePublicHtml resolves known pages', () => {
   assert.ok(resolvePublicHtml(PUB, '/fellow').includes(`${path.sep}fellow${path.sep}index.html`));
 });
 
-test('header partials include system link after about, before space', () => {
+test('header partials prioritize visitor tasks and keep brand material in the footer', () => {
   const expect = {
-    zh: { label: '消費方式', href: '/system' },
-    en: { label: 'SYSTEM', href: '/en/system' },
-    ja: { label: 'システム', href: '/ja/system' },
+    zh: { label: '會員方案', prefix: '' },
+    en: { label: 'Membership', prefix: '/en' },
+    ja: { label: '会員プラン', prefix: '/ja' },
   };
   for (const lang of ['zh', 'en', 'ja']) {
     const h = fs.readFileSync(path.join(__dirname, '..', 'views', 'partials', `header-${lang}.html`), 'utf8');
     assert.doesNotMatch(h, /href="[^"]*\/menu/);
     assert.doesNotMatch(h, /#floors/);
+    assert.doesNotMatch(h, /\/cis\/|Programs|聚落計畫|プログラム/);
     assert.match(h, /NAV_SYSTEM_CURRENT/);
-    assert.match(h, new RegExp(`href="${expect[lang].href}"[^>]*>\\s*${expect[lang].label}`));
-    assert.match(h, /\/space/);
-    const iAbout = h.indexOf(lang === 'zh' ? '/about"' : `/${lang}/about"`);
-    const iSys = h.indexOf(`href="${expect[lang].href}"`);
-    const iSpace = h.indexOf(lang === 'zh' ? 'href="/space"' : `href="/${lang}/space"`);
-    assert.ok(iAbout < iSys && iSys < iSpace, `${lang} nav order`);
+    assert.match(h, new RegExp(`href="${expect[lang].prefix}/system"[^>]*>\\s*${expect[lang].label}`));
+    const positions = ['space', 'system', 'events', 'partner', 'access', 'about'].map(slug => h.indexOf(`href="${expect[lang].prefix}/${slug}"`));
+    assert.ok(positions.every((position, index) => position >= 0 && (!index || position > positions[index - 1])), `${lang} nav order`);
+    assert.match(h, new RegExp(`href="${expect[lang].prefix}/fellow" class="btn"`));
   }
+});
+
+test('composeLayout access page marks directions current', () => {
+  const raw = `<!doctype html><body>${MARKER_HEADER}<main></main>${MARKER_FOOTER}</body>`;
+  const html = composeLayout(raw, '/access');
+  assert.match(html, /href="\/access"[^>]*aria-current="page"/);
 });
 
 test('composeLayout space page marks space current', () => {
@@ -231,6 +267,37 @@ test('system ja page structure', () => {
   assert.doesNotMatch(html, /旅館|hotel|宿泊|ホテル|過夜|共居|居住|入住/i);
 });
 
+test('plan choices, venue enquiries and account limits are explicit in all locales', () => {
+  const pages = [
+    ['system.html', 'data-label="適合情境"', '即將開放，請洽現場', '/event-application', '24 小時（條件式啟用）'],
+    [path.join('en', 'system.html'), 'data-label="Best for"', 'Coming soon; ask on site', '/en/event-application', '24-hour access (conditional)'],
+    [path.join('ja', 'system.html'), 'data-label="おすすめ"', '近日公開。現地でお問い合わせください', '/ja/event-application', '24時間利用（条件付き）'],
+  ];
+  for (const [rel, situation, availability, application, conditionalAccess] of pages) {
+    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
+    assert.match(html, /class="system-table membership-table"/);
+    assert.ok(html.includes(situation));
+    assert.ok(html.includes(availability));
+    assert.ok(html.includes(application));
+    assert.ok(html.includes(conditionalAccess));
+    assert.match(html, /mailto:us@emoji\.tw/);
+    assert.doesNotMatch(html, />[^<]*Active[^<]*</);
+  }
+
+  const css = fs.readFileSync(path.join(PUB, 'system.css'), 'utf8');
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.membership-table td::before/);
+
+  const events = fs.readFileSync(path.join(PUB, 'events.html'), 'utf8');
+  assert.ok(events.indexOf('id="ev-app"') < events.indexOf('id="ev-apply"'));
+  assert.match(events, /instagram\.com\/emoji0701/);
+
+  for (const rel of ['member.html', path.join('en', 'member.html'), path.join('ja', 'member.html')]) {
+    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
+    assert.match(html, /首次登入會以 Google 已驗證|On first sign-in, we create an account|初回ログイン時/);
+    assert.doesNotMatch(html, /activeShort: 'Active'|activeOn: 'Active|activeOff: 'Not Active|非 Active|No active (?:or|plan)|\$\{plan\}(?:進行中|利用中)/);
+  }
+});
+
 test('about en page structure', () => {
   const html = fs.readFileSync(path.join(PUB, 'en', 'about.html'), 'utf8');
   assert.match(html, /lang="en"/);
@@ -273,14 +340,17 @@ test('homepages no longer ship #about section', () => {
   }
 });
 
-test('homepage floors section is dual bridge not price cards', () => {
+test('homepage directs first-time visitors by task with labeled concept images', () => {
   for (const rel of ['index.html', path.join('en', 'index.html'), path.join('ja', 'index.html')]) {
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
     assert.match(html, /id="floors"/);
-    assert.doesNotMatch(html, /class="floors__grid"/);
-    assert.doesNotMatch(html, /floor__how/);
+    assert.equal((html.match(/class="journey-card reveal"/g) || []).length, 3);
+    assert.match(html, /assets\/space\/1f-concept\.jpg/);
+    assert.match(html, /assets\/space\/2f-concept\.jpg/);
+    assert.match(html, /assets\/space\/3f-concept\.jpg/);
     assert.match(html, /\/system/);
     assert.match(html, /\/space/);
+    assert.match(html, /\/events/);
   }
 });
 

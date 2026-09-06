@@ -58,7 +58,7 @@
 .floor-media figcaption {
   margin-top: 9px;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: 1rem;
   line-height: 1.55;
 }
 
@@ -91,7 +91,7 @@
 
 .space-panel__facts dt {
   color: var(--muted);
-  font-size: .86rem;
+  font-size: 1rem;
   font-weight: 500;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -593,6 +593,10 @@
   margin: 12px 0 16px;
 }
 
+.space-panel--accordion .space-panel__facts {
+  order: 2;
+}
+
 .space-panel--accordion .space-panel__close {
   all: unset;
   box-sizing: border-box;
@@ -611,12 +615,12 @@
 }
 
 .space-panel--accordion .md-content {
-  order: 2;
+  order: 3;
   max-width: none;
 }
 
 .space-panel--accordion .space-panel__menu {
-  order: 3;
+  order: 4;
   margin-top: 28px;
   padding-top: 22px;
   border-top: 1px solid var(--line);

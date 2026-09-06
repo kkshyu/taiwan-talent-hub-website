@@ -70,6 +70,7 @@ test('application UI keeps the exact request across uncertain delivery and clear
   assert.equal(p.draftStorage.getItem('tth_event_application_draft'), null);
   assert.equal(p.form.elements.title.value, '');
   assert.match(p.node('ea-message').textContent, /不代表已保留場地/);
+  assert.match(p.node('ea-message').textContent, /申請編號: 1/);
   assert.doesNotMatch(p.node('ea-message').textContent, /等待審核/);
 });
 
@@ -94,10 +95,11 @@ test('validation failure permits correcting the same draft; expired login preser
   assert.deepEqual(next.calls[0], p.calls[1]);
 });
 
-test('all three locales render and display timestamps in Taiwan time', () => {
-  for (const [prefix, heading] of [['', '申請舉辦活動'], ['/en', 'Host an event'], ['/ja', 'イベント開催を申請']]) {
+test('all three locales render the three application steps and display timestamps in Taiwan time', () => {
+  for (const [prefix, heading, step] of [['', '申請社群活動', '聯絡資料'], ['/en', 'Apply for a community event', 'Contact details'], ['/ja', 'コミュニティ活動の会場利用申請', '連絡先']]) {
     const p = page({ path: prefix + '/event-application', hash: '' });
     assert.match(p.node('content').innerHTML, new RegExp(heading));
+    assert.match(p.node('content').innerHTML, new RegExp(step));
     assert.equal(p.node('ea-submit').disabled, true);
     assert.match(vm.runInContext("when('2099-09-20T10:00:00.000Z')", p.context), /18:00/);
     assert.equal(vm.runInContext("esc('<script>')", p.context), '&lt;script&gt;');

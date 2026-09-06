@@ -37,9 +37,19 @@ const I18N = {
     progressRevealed: joined => `${joined} ／ 限量 100 名　·　售罄不補，與一般年費同價、加量不加價`,
     progressQuiet: confirming => `${confirming}　·　售止 2026-12-31，售罄不補`,
     srvErr: s => `伺服器錯誤（${s}）`,
-    buyErr: '購買暫時無法開始，請稍後再試。',
-    paid: '✓ 付款完成，歡迎成為創始會員！會籍自 <b>2026-11-01</b> 起算 18 個月（至 <b>2028-04-30</b>）；收據與創始會員證將以 Email 寄出。',
-    canceled: '已取消結帳，隨時歡迎再回來。',
+    buyLoading: '正在前往安全付款頁…',
+    buyErr: '目前無法開啟付款頁。請重試；若仍無法使用，請來信 us@emoji.tw，我們會協助你完成加入。',
+    soldOut: '創始名額已滿或正由其他人結帳中，請稍後再試。',
+    saleEnded: '創始會員已截止販售。如需確認，請來信 us@emoji.tw。',
+    retry: '重試',
+    contact: '來信詢問',
+    contactSubject: '創始會員付款協助',
+    paid: '✓ 金流已確認付款。團隊會依付款 Email 人工核對會員資料與創始權益，完成後另行通知；若需協助，請來信 <a href="mailto:us@emoji.tw">us@emoji.tw</a>。',
+    canceled: '結帳已取消，未產生付款。你可以再次前往付款，或來信 <a href="mailto:us@emoji.tw">us@emoji.tw</a> 詢問。',
+    verifyPending: '目前還無法確認這筆付款。請勿重複付款；請重新整理本頁再查一次，若仍未確認，請來信 <a href="mailto:us@emoji.tw">us@emoji.tw</a>。',
+    unpaid: '目前未確認付款完成，此付款連結可能無效或已失效。你可以重新前往付款，或來信 <a href="mailto:us@emoji.tw">us@emoji.tw</a> 詢問。',
+    verifying: '正在確認付款結果，請稍候…',
+    close: '關閉通知',
   },
   en: {
     joined: n => `${n} joined`,
@@ -47,9 +57,19 @@ const I18N = {
     progressRevealed: joined => `${joined} ／ limited to 100 · no restock · same price as annual, more included`,
     progressQuiet: confirming => `${confirming} · on sale until 2026-12-31 · no restock`,
     srvErr: s => `Server error (${s})`,
-    buyErr: 'Checkout could not start. Please try again shortly.',
-    paid: '✓ Payment complete — welcome, Founding Member! Your 18-month membership runs <b>2026-11-01</b> → <b>2028-04-30</b>; your receipt and Founding Member certificate will be emailed to you.',
-    canceled: 'Checkout canceled — you are welcome back anytime.',
+    buyLoading: 'Opening secure checkout…',
+    buyErr: 'Checkout is unavailable right now. Try again, or email us@emoji.tw and we will help you join.',
+    soldOut: 'Founding spots are full or currently held by other checkouts. Please try again shortly.',
+    saleEnded: 'Founding Member sales have ended. Email us@emoji.tw if you need help confirming this.',
+    retry: 'Try again',
+    contact: 'Email us',
+    contactSubject: 'Founding Member checkout help',
+    paid: '✓ Payment has been confirmed. The team will manually match the payment email with your member record and Founding benefits, then notify you when confirmed. For help, email <a href="mailto:us@emoji.tw">us@emoji.tw</a>.',
+    canceled: 'Checkout was canceled and no payment was made. You can proceed to payment again, or email <a href="mailto:us@emoji.tw">us@emoji.tw</a>.',
+    verifyPending: 'We cannot confirm this payment yet. Please do not pay again. Refresh this page to check again; if it remains unconfirmed, email <a href="mailto:us@emoji.tw">us@emoji.tw</a>.',
+    unpaid: 'Payment was not confirmed. This payment link may be invalid or expired. You can proceed to payment again, or email <a href="mailto:us@emoji.tw">us@emoji.tw</a>.',
+    verifying: 'Checking your payment status…',
+    close: 'Dismiss notice',
   },
   ja: {
     joined: n => `${n} 名が参加`,
@@ -57,9 +77,19 @@ const I18N = {
     progressRevealed: joined => `${joined} ／ 限定100名　·　完売後の追加なし、一般年会費と同価格で内容を増量`,
     progressQuiet: confirming => `${confirming}　·　2026-12-31 まで販売、完売後の追加なし`,
     srvErr: s => `サーバーエラー（${s}）`,
-    buyErr: '決済を開始できませんでした。しばらくしてから再度お試しください。',
-    paid: '✓ お支払いが完了しました。創始会員へようこそ！会籍は <b>2026-11-01</b> から18か月間（<b>2028-04-30</b> まで）。領収書と創始会員証はメールでお送りします。',
-    canceled: '決済をキャンセルしました。いつでもお戻りください。',
+    buyLoading: '安全な決済ページを開いています…',
+    buyErr: '現在、決済ページを開けません。再度お試しいただくか、us@emoji.tw までご連絡ください。',
+    soldOut: '創始会員枠は満席、またはほかの決済で一時確保されています。しばらくしてから再度お試しください。',
+    saleEnded: '創始会員の販売は終了しました。確認が必要な場合は us@emoji.tw までご連絡ください。',
+    retry: '再試行',
+    contact: 'メールで相談',
+    contactSubject: '創始会員の決済について',
+    paid: '✓ 決済が確認されました。チームが決済メールアドレスと会員情報・創始会員特典を手動で照合し、確認後にお知らせします。サポートが必要な場合は <a href="mailto:us@emoji.tw">us@emoji.tw</a> までご連絡ください。',
+    canceled: '決済はキャンセルされ、お支払いは発生していません。もう一度決済へ進むか、<a href="mailto:us@emoji.tw">us@emoji.tw</a> までご連絡ください。',
+    verifyPending: 'このお支払いはまだ確認できません。重複して支払わず、このページを再読み込みして再確認してください。確認できない場合は <a href="mailto:us@emoji.tw">us@emoji.tw</a> までご連絡ください。',
+    unpaid: 'お支払いは確認できませんでした。この決済リンクは無効または期限切れの可能性があります。もう一度決済へ進むか、<a href="mailto:us@emoji.tw">us@emoji.tw</a> までご連絡ください。',
+    verifying: 'お支払い状況を確認しています…',
+    close: '通知を閉じる',
   },
 };
 const T = I18N[LANG] || I18N.zh;
@@ -76,16 +106,28 @@ const getToken = () => localStorage.getItem(TOKEN_KEY) || '';
 const setToken = t => { try { localStorage.setItem(TOKEN_KEY, t); } catch (e) {} };
 const clearToken = () => { try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('tth_name'); } catch (e) {} };
 
-async function api(path, { method = 'GET', body } = {}) {
+async function api(path, { method = 'GET', body, signal } = {}) {
   const res = await fetch('/api' + path, {
     method,
     headers: { 'Content-Type': 'application/json', ...(getToken() ? { Authorization: 'Bearer ' + getToken() } : {}) },
     body: body ? JSON.stringify(body) : undefined,
+    signal,
   });
   let data = {};
   try { data = await res.json(); } catch (e) {}
-  if (!res.ok) throw new Error(data.error || T.srvErr(res.status));
+  if (!res.ok) {
+    const error = new Error(data.error || T.srvErr(res.status));
+    error.status = res.status; error.code = data.code;
+    throw error;
+  }
   return data;
+}
+
+async function timedApi(path, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try { return await api(path, { ...options, signal: controller.signal }); }
+  finally { clearTimeout(timer); }
 }
 
 async function fetchState() {
@@ -140,17 +182,45 @@ function renderProgress() {
    路由（多頁面）
    ========================================================================= */
 const VIEWS = ['home','why-now','about','project','membership','risk'];
+let activeView = null;
+const viewUrl = hash => location.pathname + location.search + hash;
 function go(view, opts = {}) {
   if (!VIEWS.includes(view)) view = 'home';
+  if (view === activeView && !opts.replace) return;
+  const targetHash = view === 'home' ? '' : '#' + view;
+  if (opts.replace) {
+    history.replaceState({ view, scrollY: Number(opts.scrollY) || 0 }, '', viewUrl(targetHash));
+  } else if (!opts.fromHistory && activeView) {
+    history.replaceState({ view: activeView, scrollY: window.scrollY }, '');
+    history.pushState({ view, scrollY: 0 }, '', viewUrl(targetHash));
+  } else if (opts.fromHistory) {
+    history.replaceState({ view, scrollY: Number(opts.scrollY) || 0 }, '', viewUrl(targetHash));
+  }
   $$('.view').forEach(v => v.classList.remove('active'));
-  $('#view-' + view).classList.add('active');
+  const target = $('#view-' + view);
+  target.classList.add('active');
+  activeView = view;
   setNavActive(view);
-  if (!opts.keepScroll) window.scrollTo({ top: 0, behavior: 'auto' });
+  window.scrollTo({ top: Number(opts.scrollY) || 0, behavior: 'auto' });
+  if (opts.focus !== false) {
+    const heading = target.querySelector('h1, h2');
+    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
+  }
   closeMenu();
   observeReveal();
-  // URL hash 與目前 view 同步，供共用導覽列深連結（/fellow#why-now）與分享
-  const targetHash = view === 'home' ? '' : '#' + view;
-  if (location.hash !== targetHash) history.replaceState(null, '', location.pathname + targetHash);
+}
+function restoreView(state) {
+  const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  if (view === activeView) return;
+  go(view, { fromHistory: true, scrollY: state && state.view === view ? state.scrollY : 0 });
+}
+let scrollFrame = 0;
+function rememberScroll() {
+  if (!activeView || scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0;
+    history.replaceState({ view: activeView, scrollY: window.scrollY }, '');
+  });
 }
 function setNavActive(view) {
   $$('.nav-links a[data-go]').forEach(a => a.classList.toggle('active', a.dataset.go === view));
@@ -161,19 +231,19 @@ function setNavActive(view) {
    ========================================================================= */
 const CONTRACT_HTML = `
 <h4>言文字創始會員入會協議（摘要）</h4>
-<p>本協議由入會人（乙方）與發起方 徐愷 KK（甲方）就乙方加入「言文字｜台灣人才聚落」創始會員計畫事宜訂立。乙方係甲方主動邀請之<strong>特定人</strong>；本計畫為<strong>會籍預售</strong>。</p>
+<p>本協議由入會人（乙方）與發起方 徐愷 KK（甲方）就乙方加入「言文字｜台灣人才聚落」創始會員計畫事宜訂立。乙方自願加入，本計畫<strong>不限邀請</strong>，性質為<strong>會籍預售</strong>。</p>
 <h4>第一條　會籍內容與期間</h4>
 <p>乙方取得創始會員會籍，期間 18 個月，內容包含：二、三樓會員限定空間進出（人臉辨識門禁）、三樓共享辦公與活動空間自由使用、社群活動與互助網絡資格，以及創始專屬權益（三樓創始牆名錄、創始晚餐邀請、續約鎖價保障）。</p>
 <h4>第二條　贈點與兌換規則</h4>
-<p>乙方於付款成功時獲贈點數 20,000 點（每點 1 元，預設一年效期），得兌換二樓淋浴、膠囊休憩席與娛樂室等指定服務（淋浴 70 點／次；膠囊休憩席與娛樂室各 100 點／小時，須為 Active 會員）。贈點不得轉讓、不得折換現金；購買點另依點數規則辦理。</p>
+<p>乙方於付款成功時獲贈點數 20,000 點（每點 1 元，預設一年效期），得兌換二樓淋浴、膠囊休憩席與娛樂室等指定服務（淋浴 70 點／次；膠囊休憩席與娛樂室各 100 點／小時，須持有效會籍）。贈點不得轉讓、不得折換現金；購買點另依點數規則辦理。</p>
 <h4>第三條　會費與付款</h4>
 <p>創始會費為新台幣 35,000 元整（固定，與一般年費同牌價），以線上刷卡或匯款一次付清；甲方對帳確認入帳後，核發創始會員證並保留創始編號（001–100）。</p>
 <h4>第四條　會籍起算日</h4>
 <p>會籍自 2026 年 11 月 1 日正式開幕日起算；若開幕延後，自實際開幕日起算，會籍期間與贈點均不縮減。</p>
 <h4>第五條　條件式服務揭露</h4>
-<p>二樓膠囊休憩席與娛樂室之休憩服務，於主管機關書面確認完成前屬條件式服務；確認完成前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。</p>
+<p>二樓 24 小時膠囊休憩席、娛樂室與淋浴服務屬條件式服務，於律師口頭意見後由營運方確認啟用；啟用前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。</p>
 <h4>第六條　退費</h4>
-<p>退費依會員規章辦理；會員規章正式條款由律師核定中，乙方於簽署正本前將取得完整文本。</p>
+<p>創始會籍不可退費；若乙方日後無法繼續使用，得通知甲方更新登記後轉讓會籍。轉讓細節依會員規章辦理；乙方於簽署正本前將取得完整文本。</p>
 <h4>第七條　性質聲明</h4>
 <p>本協議為會籍預售之服務契約；乙方支付會費所取得者為會籍與贈點。創始會員證僅為管理與紀錄憑證，不得轉讓或交易。</p>
 <h4>第八條　個人資料</h4>
@@ -295,7 +365,7 @@ function renderDashboard() {
             <li>二、三樓會員限定空間進出（人臉辨識門禁）</li>
             <li>三樓共享辦公與活動空間自由使用</li>
             <li>社群活動與互助網絡資格</li>
-            <li>二樓膠囊休憩席與娛樂室休憩，以額度折抵</li>
+            <li>二樓 24 小時休憩屬條件式服務，於律師口頭意見後由營運方確認啟用，並以點數折抵</li>
             <li>創始牆名錄・創始晚餐・續約鎖價保障</li>
           </ul>
         </div>
@@ -377,19 +447,19 @@ function renderAgreement(certId) {
       <div class="ag-party"><b>甲方（發起方）</b>徐愷 KK<br>地址：台北市中正區重慶南路一段 11 號</div>
       <div class="ag-party"><b>乙方（入會人）</b>${esc(u.name || '—')}<br>電話：${esc(u.phone || '—')}<br>Email：${esc(u.email || '—')}</div>
     </div>
-    <p>雙方本於誠信，就乙方加入甲方推動之「言文字｜台灣人才聚落」創始會員計畫事宜，訂立本協議。乙方係甲方主動邀請之特定人；本計畫為會籍預售。</p>
+    <p>雙方本於誠信，就乙方加入甲方推動之「言文字｜台灣人才聚落」創始會員計畫事宜，訂立本協議。乙方自願加入，本計畫不限邀請，性質為會籍預售。</p>
     <h4>第一條（會籍內容與期間）</h4>
     <p>乙方取得創始會員會籍，期間 18 個月。會籍權益包含：二、三樓會員限定空間進出（人臉辨識門禁）、三樓共享辦公與活動空間自由使用、社群活動與互助網絡資格，以及創始專屬權益：三樓創始牆名錄、創始晚餐邀請、續約鎖價保障（未來牌價調漲不影響乙方首次續約價格）。</p>
     <h4>第二條（贈點與兌換規則）</h4>
-    <p>乙方於付款成功時獲贈點數 20,000 點（每點 1 元，預設一年效期），得兌換二樓指定服務；贈點不得轉讓、不得折換現金。</p>
+    <p>乙方於付款成功時獲贈點數 20,000 點（每點 1 元，預設一年效期），持有效會籍者得兌換二樓指定服務；贈點不得轉讓、不得折換現金。</p>
     <h4>第三條（會費與付款）</h4>
     <p>創始會費為新台幣 ${num(c.amount)} 元整（固定，與一般年費同牌價），乙方以線上刷卡或匯款一次付清。甲方對帳確認入帳後，核發創始會員證並保留乙方之創始編號（001–100）。</p>
     <h4>第四條（會籍起算日）</h4>
     <p>會籍自 2026 年 11 月 1 日正式開幕日起算；若開幕延後，自實際開幕日起算，會籍期間與贈點均不縮減。系統顯示之起訖日（${fmtDate(c.start_date)} 至 ${fmtDate(c.maturity_date)}）將依實際開幕日調整。</p>
     <h4>第五條（條件式服務揭露）</h4>
-    <p>二樓膠囊休憩席與娛樂室之休憩服務，於主管機關書面確認完成前屬條件式服務；確認完成前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。乙方確認已知悉並同意上述安排。</p>
+    <p>二樓 24 小時膠囊休憩席、娛樂室與淋浴服務屬條件式服務，於律師口頭意見後由營運方確認啟用；啟用前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。乙方確認已知悉並同意上述安排。</p>
     <h4>第六條（退費）</h4>
-    <p>退費依會員規章辦理。會員規章正式條款由律師核定中，乙方於簽署正本前將取得完整文本；正式權利義務以律師核定版為準。</p>
+    <p>創始會籍不可退費；若乙方日後無法繼續使用，得通知甲方更新登記後轉讓會籍。轉讓細節依會員規章辦理；乙方於簽署正本前將取得完整文本，正式權利義務以律師核定版為準。</p>
     <h4>第七條（性質聲明）</h4>
     <p>本協議為會籍預售之服務契約；乙方支付會費所取得者為會籍與贈點。甲方核發之創始會員證僅為管理與紀錄憑證，不得轉讓、質押或交易，亦不得對外公開招攬或勸誘。</p>
     <h4>第八條（個人資料之蒐集、處理及利用）</h4>
@@ -426,7 +496,7 @@ function renderUpdates() {
    共用 UI
    ========================================================================= */
 function emptyState(t) { return `<div class="panel"><div class="panel-b" style="padding:40px;text-align:center;color:var(--muted)">${esc(t)}</div></div>`; }
-function bindGo(root) { $$('[data-go]', root).forEach(b => b.addEventListener('click', () => go(b.dataset.go))); }
+function bindGo(root) { $$('[data-go]', root).forEach(b => b.addEventListener('click', e => { e.preventDefault(); go(b.dataset.go); })); }
 function bindCopy(root) {
   $$('.copy-btn', root).forEach(b => b.addEventListener('click', () => {
     const t = b.dataset.copy;
@@ -471,35 +541,69 @@ function enterApp() {
    購買（Stripe Checkout 導轉）
    ========================================================================= */
 async function startCheckout(btn) {
-  if (btn) btn.disabled = true;
+  if (!btn || startCheckout.busy) return;
+  startCheckout.busy = true;
+  const buttons = $$('[data-buy]');
+  buttons.forEach(b => { b.dataset.buyLabel ||= b.textContent; b.disabled = true; b.setAttribute('aria-busy', 'true'); });
+  if (btn) btn.textContent = T.buyLoading;
+  $('.checkout-feedback')?.remove();
+  $('.checkout-loading')?.remove();
+  const loading = document.createElement('div');
+  loading.className = 'checkout-loading'; loading.setAttribute('role', 'status'); loading.setAttribute('aria-live', 'polite');
+  loading.textContent = T.buyLoading;
+  const host = btn.closest('.fnd-invite__cta, .pagenav') || btn;
+  host.insertAdjacentElement('afterend', loading);
   try {
-    const { url } = await api('/checkout', { method: 'POST', body: { lang: LANG } });
+    const { url } = await timedApi('/checkout', { method: 'POST', body: { lang: LANG } });
+    if (!url) throw new Error(T.buyErr);
     location.href = url;               // 導向 Stripe 代管結帳頁
   } catch (e) {
-    toast(e.message || T.buyErr);
-    if (btn) btn.disabled = false;
+    startCheckout.busy = false;
+    loading.remove();
+    buttons.forEach(b => { b.disabled = false; b.removeAttribute('aria-busy'); b.textContent = b.dataset.buyLabel; });
+    const box = document.createElement('div');
+    box.className = 'checkout-feedback'; box.setAttribute('role', 'alert'); box.setAttribute('tabindex', '-1');
+    const message = e.code === 'SOLD_OUT' ? T.soldOut : e.code === 'SALE_ENDED' ? T.saleEnded : T.buyErr;
+    const retry = e.code !== 'SALE_ENDED' && e.status !== 410;
+    box.innerHTML = `<p>${esc(message)}</p><div>${retry ? `<button class="btn btn-ghost btn-sm" type="button">${esc(T.retry)}</button>` : ''}<a href="mailto:us@emoji.tw?subject=${encodeURIComponent(T.contactSubject)}">${esc(T.contact)}</a></div>`;
+    if (retry) box.querySelector('button').addEventListener('click', () => startCheckout(btn));
+    host.insertAdjacentElement('afterend', box);
+    box.focus();
   }
 }
 
 // 從 Stripe 返回：顯示付款結果橫幅（自包含樣式，CIS 唯一黃／墨）
 async function showPurchaseResult() {
   const p = new URLSearchParams(location.search);
-  let paid = p.get('paid') === '1'; const canceled = p.get('canceled') === '1';
-  if (!paid && !canceled) return;
-  history.replaceState(null, '', location.pathname); // 清掉 query，避免重整重複顯示
-  if (paid) { // 不信任 query：向後端以 Stripe session id 確認已付款
-    try { paid = !!(await api('/checkout/verify?s=' + encodeURIComponent(p.get('s') || ''))).paid; } catch (e) { paid = false; }
-    if (!paid) return;
-  }
+  const requestedPaid = p.get('paid') === '1'; const canceled = p.get('canceled') === '1';
+  if (!requestedPaid && !canceled) return;
   const bar = document.createElement('div');
-  bar.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:300;padding:14px 52px 14px 20px;'
-    + 'font-size:1rem;line-height:1.6;text-align:center;box-shadow:0 6px 20px -10px rgba(0,0,0,.5);'
-    + (paid ? 'background:#FFDE34;color:#1B1A17;' : 'background:#1B1A17;color:#EDE9E0;');
-  bar.innerHTML = (paid ? T.paid : T.canceled)
-    + '<button aria-label="關閉" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);'
-    + 'background:none;border:0;font-size:1.4rem;line-height:1;cursor:pointer;color:inherit">×</button>';
-  document.body.appendChild(bar);
-  bar.querySelector('button').addEventListener('click', () => bar.remove());
+  bar.setAttribute('role', 'status'); bar.setAttribute('aria-live', 'polite'); bar.setAttribute('aria-atomic', 'true');
+  const render = result => {
+    bar.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:300;padding:14px 60px 14px 20px;'
+      + 'font-size:1rem;line-height:1.6;text-align:center;box-shadow:0 6px 20px -10px rgba(0,0,0,.5);'
+      + (result === 'paid' ? 'background:#FFDE34;color:#1B1A17;' : 'background:#1B1A17;color:#EDE9E0;');
+    const message = result === 'paid' ? T.paid : result === 'canceled' ? T.canceled
+      : result === 'unpaid' ? T.unpaid : result === 'verifying' ? T.verifying : T.verifyPending;
+    bar.innerHTML = message
+      + `<button aria-label="${esc(T.close)}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:44px;height:44px;`
+      + 'background:none;border:0;font-size:1.4rem;line-height:1;cursor:pointer;color:inherit">×</button>';
+    bar.querySelector('button').addEventListener('click', () => bar.remove());
+  };
+  let result = canceled ? 'canceled' : 'pending';
+  if (requestedPaid) {
+    render('verifying');
+    document.body.appendChild(bar);
+    try {
+      result = (await timedApi('/checkout/verify?s=' + encodeURIComponent(p.get('s') || ''))).paid ? 'paid' : 'unpaid';
+    } catch (e) {
+      if (e.status && e.status < 500) result = 'unpaid';
+    }
+  }
+  // 已確認、未付款或已取消才清掉 query；供應商暫時不可用時保留 session id 供重新整理查驗。
+  if (result !== 'pending') history.replaceState(history.state, '', location.pathname + location.hash);
+  render(result);
+  if (!bar.isConnected) document.body.appendChild(bar);
 }
 
 async function init() {
@@ -513,8 +617,11 @@ async function init() {
   bindGo(document);
   // 深連結：/fellow#why-now 進站即開對應 view；並監聽 hash 變化（導覽下拉點選）
   const hv = location.hash.slice(1);
-  go(VIEWS.includes(hv) ? hv : 'home');
-  addEventListener('hashchange', () => { const v = location.hash.slice(1); go(VIEWS.includes(v) ? v : 'home'); });
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  go(VIEWS.includes(hv) ? hv : 'home', { replace: true, focus: false });
+  addEventListener('popstate', e => restoreView(e.state));
+  addEventListener('hashchange', () => restoreView(history.state));
+  addEventListener('scroll', rememberScroll, { passive: true });
   fetchPublic();   // 進度在背景更新，不讓 API 延遲阻塞導覽與進場顯示。
 }
 

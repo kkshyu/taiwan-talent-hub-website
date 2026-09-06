@@ -26,7 +26,7 @@ const {
   POINT_PRICE_TWD, PACKS, MEMBERSHIP_GIFT_POINTS,
   addYears, isLotAvailable, availableBalance, planDebit, planRefund, redeemPointsFor,
 } = require('./lib/points');
-const { sendPage, layoutMiddleware } = require('./lib/layout');
+const { sendPage, layoutMiddleware, composeEventMeta } = require('./lib/layout');
 const { SPACE_SEED, missingSpaceSeedKeys } = require('./lib/space-content');
 const { assertSpaceImageFile, buildSafeSpaceFilename } = require('./lib/space-upload');
 const { assertSocialImageFile, buildSafeSocialFilename, sniffImageType } = require('./lib/social-upload');
@@ -943,9 +943,11 @@ function superOnly(req, res, next) {
   next();
 }
 const wrap = fn => (req, res) => fn(req, res).catch(e => {
-  console.error('[api error]', e.message);
   const paymentUnavailable = e && (e.code === 'api_key_expired' ||
-    ['StripeAuthenticationError', 'StripeConnectionError', 'StripeRateLimitError', 'StripeAPIError'].includes(e.type));
+    ['StripeAuthenticationError', 'StripePermissionError', 'StripeConnectionError', 'StripeRateLimitError', 'StripeAPIError'].includes(e.type));
+  console.error('[api error]', paymentUnavailable
+    ? [e.type, e.code, e.requestId].filter(Boolean).join(' ')
+    : e.message);
   res.status(paymentUnavailable ? 503 : 500).json(paymentUnavailable
     ? { error: '付款服務暫時無法使用，請稍後再試。', code: 'PAYMENT_UNAVAILABLE' }
     : { error: '伺服器處理失敗。' });
@@ -2361,11 +2363,12 @@ app.delete('/api/events/:id/register', auth, requireDb, wrap(async (req, res) =>
 
 /* ---- Stripe Checkout（開放任何人購買，無需登入；Stripe 為訂單真相來源） ---- */
 // 已付款與仍可付款的 checkout 皆占名額；Stripe 為真相來源。
+const FOUNDING_SALE_START_TS = Math.floor(Date.parse('2026-07-11T00:00:00+08:00') / 1000);
 async function reservedFoundingCount() {
   const ids = new Set();
   // 先 open 再 complete，掃描中完成付款的 session 只會重複，不能漏計。
   for (const status of ['open', 'complete']) {
-    for await (const s of stripe.checkout.sessions.list({ status, limit: 100 })) {
+    for await (const s of stripe.checkout.sessions.list({ status, limit: 100, created: { gte: FOUNDING_SALE_START_TS } })) {
       if (s.metadata?.plan === 'founding-member' &&
           (s.payment_status === 'paid' || (status === 'open' && s.expires_at > Date.now() / 1000))) ids.add(s.id);
       if (ids.size >= MAX_PARTICIPANTS) return ids.size;
@@ -2377,7 +2380,7 @@ const todayTaipei = () => new Date(Date.now() + 8 * 3600e3).toISOString().slice(
 
 app.post('/api/checkout', requireDb, wrap(async (req, res) => {
   if (!stripe) return res.status(503).json({ error: '購買功能尚未開通（未設定 Stripe）。' });
-  if (todayTaipei() > SALE_END) return res.status(410).json({ error: `創始會員已於 ${SALE_END} 截止販售。` });
+  if (todayTaipei() > SALE_END) return res.status(410).json({ error: `創始會員已於 ${SALE_END} 截止販售。`, code: 'SALE_ENDED' });
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -2385,7 +2388,7 @@ app.post('/api/checkout', requireDb, wrap(async (req, res) => {
     await client.query(`SELECT pg_advisory_xact_lock(hashtext('founding-checkout'))`);
     if (await reservedFoundingCount() >= MAX_PARTICIPANTS) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ error: `創始名額已滿或正在結帳中（限量 ${MAX_PARTICIPANTS} 名），請稍後再試。` });
+      return res.status(409).json({ error: `創始名額已滿或正在結帳中（限量 ${MAX_PARTICIPANTS} 名），請稍後再試。`, code: 'SOLD_OUT' });
     }
     // 不信任 Origin header（避免 open redirect）；導向目標一律用伺服器端常數，本地測試以 PUBLIC_ORIGIN 覆蓋
     const origin = SITE_BASE;
@@ -2457,9 +2460,20 @@ const EVENTS_PAGE = path.join(PUB, 'events.html');
 app.get(['/event-application', '/en/event-application', '/ja/event-application'], (req, res) =>
   sendPage(res, path.join(PUB, 'event-application.html'), req.path));
 app.get(['/events', '/en/events', '/ja/events'], (req, res) => sendPage(res, EVENTS_PAGE, req.path));
-app.get(['/events/:slug', '/en/events/:slug', '/ja/events/:slug'], (req, res) => {
-  res.set('X-Robots-Tag', 'noindex');
-  sendPage(res, EVENTS_PAGE, req.path);
+app.get(['/events/:slug', '/en/events/:slug', '/ja/events/:slug'], async (req, res) => {
+  let event = null;
+  if (dbReady) {
+    try {
+      event = (await q(
+        `SELECT ${SEL_EVENT} FROM events e WHERE e.slug=$1 AND e.status<>'草稿' LIMIT 1`,
+        [req.params.slug]
+      )).rows[0] || null;
+    } catch (error) {
+      console.warn('[event-meta] 無法讀取活動公開狀態：', error?.message || 'unknown error');
+    }
+  }
+  if (!event || event.visibility !== 'public') res.set('X-Robots-Tag', 'noindex');
+  sendPage(res, EVENTS_PAGE, req.path, event ? html => composeEventMeta(html, event, req.path) : null);
 });
 app.get('/', (req, res) => sendPage(res, path.join(PUB, 'index.html'), '/'));
 // /menu 舊頁改版為空間介紹：301 導至 /space（保留語系前綴），需先於 static 攔截

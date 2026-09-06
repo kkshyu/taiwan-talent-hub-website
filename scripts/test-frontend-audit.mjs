@@ -81,23 +81,104 @@ test('event OAuth callback works in all locales and preserves payment verificati
   assert.match(vm.runInContext("actionFor({ status: '報名中', capacity: 0 })", eventContext('zh', true).context), /id="ev-register"/);
 });
 
-test('fellow navigation initializes even while the public API never resolves', async () => {
-  const calls = [];
-  const context = vm.createContext({
-    location: { pathname: '/fellow', hash: '#why-now' },
-    document: { addEventListener() {}, body: { classList: { add() {} } } },
-    addEventListener(name) { calls.push(name); },
-    record(value) { calls.push(value); },
+test('fellow chapter history restores the previous view, reading position and focus without waiting for API', async () => {
+  const listeners = {}, historyCalls = [], scrolls = [], focused = [];
+  const location = { pathname: '/fellow', hash: '#project', search: '' };
+  const classList = initial => {
+    const values = new Set(initial);
+    return { add: v => values.add(v), remove: v => values.delete(v),
+      toggle(v, on) { on ? values.add(v) : values.delete(v); }, contains: v => values.has(v) };
+  };
+  const views = Object.fromEntries(['home', 'why-now', 'about', 'project', 'membership', 'risk'].map(name => {
+    const heading = { setAttribute() {}, focus(options) { focused.push({ name, options }); } };
+    return [name, { classList: classList(name === 'home' ? ['active'] : []), querySelector: () => heading }];
+  }));
+  const next = { dataset: { go: 'membership' }, addEventListener(name, fn) { this[name] = fn; } };
+  const history = {
+    state: null, scrollRestoration: 'auto',
+    replaceState(state, _title, url) { this.state = state; historyCalls.push({ type: 'replace', state, url }); setHash(url); },
+    pushState(state, _title, url) { this.state = state; historyCalls.push({ type: 'push', state, url }); setHash(url); },
+  };
+  function setHash(url) {
+    if (url === undefined) return;
+    location.hash = url.includes('#') ? '#' + url.split('#')[1] : '';
+  }
+  const document = {
+    body: { classList: classList([]) }, addEventListener() {}, getElementById() { return null; },
+    querySelector(selector) { return selector.startsWith('#view-') ? views[selector.slice(6)] : null; },
+    querySelectorAll(selector) {
+      if (selector === '.view') return Object.values(views);
+      if (selector === '[data-go]') return [next];
+      return [];
+    },
+  };
+  const context = vm.createContext({ URLSearchParams, location, history, document,
+    localStorage: { getItem() { return ''; } }, fetch: () => new Promise(() => {}),
+    setTimeout, clearTimeout, scrollY: 0,
+    scrollTo(options) { this.scrollY = options.top; scrolls.push(options.top); },
+    addEventListener(name, fn) { listeners[name] = fn; },
   });
+  context.window = context;
   vm.runInContext(read('public/fellow/app.js'), context);
-  vm.runInContext(`
-    showPurchaseResult = () => {};
-    bindGo = () => {};
-    go = view => record(view);
-    fetchPublic = () => new Promise(() => {});
-    init();
-  `, context);
-  assert.deepEqual(calls, ['why-now', 'hashchange']);
+  await vm.runInContext('init()', context);
+
+  assert.equal(history.scrollRestoration, 'manual');
+  assert.deepEqual({ ...historyCalls[0], state: { ...historyCalls[0].state } },
+    { type: 'replace', state: { view: 'project', scrollY: 0 }, url: '/fellow#project' });
+  context.scrollY = 640;
+  next.click({ preventDefault() {} });
+  assert.deepEqual(historyCalls.slice(-2).map(x => ({ ...x, state: { ...x.state } })), [
+    { type: 'replace', state: { view: 'project', scrollY: 640 }, url: undefined },
+    { type: 'push', state: { view: 'membership', scrollY: 0 }, url: '/fellow#membership' },
+  ]);
+  assert.equal(views.membership.classList.contains('active'), true);
+
+  location.hash = '#project'; history.state = { view: 'project', scrollY: 640 };
+  listeners.popstate({ state: history.state });
+  const handled = scrolls.length;
+  listeners.hashchange();
+  assert.equal(scrolls.length, handled, 'hashchange following popstate must not render twice');
+  assert.equal(scrolls.at(-1), 640);
+  assert.equal(views.project.classList.contains('active'), true);
+  assert.deepEqual(focused.map(x => x.name), ['membership', 'project']);
+  assert.equal(focused.at(-1).options.preventScroll, true);
+});
+
+test('fellow checkout exposes loading, localized retry and the canonical contact after a provider outage', async () => {
+  let feedback = null, calls = 0;
+  const retry = { listeners: {}, addEventListener(name, fn) { this.listeners[name] = fn; } };
+  const host = { insertAdjacentElement(_where, el) { feedback = el; } };
+  const buy = {
+    dataset: {}, textContent: '成為創始會員', attrs: {},
+    setAttribute(k, v) { this.attrs[k] = v; }, removeAttribute(k) { delete this.attrs[k]; },
+    closest() { return host; },
+  };
+  const document = {
+    addEventListener() {}, querySelectorAll: selector => selector === '[data-buy]' ? [buy] : [],
+    querySelector: selector => selector === '.checkout-feedback' ? feedback : null,
+    createElement() {
+      return { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; },
+        querySelector() { return retry; }, remove() { feedback = null; }, focus() { this.focused = true; } };
+    },
+  };
+  const context = vm.createContext({ URLSearchParams, location: { pathname: '/fellow', hash: '', search: '' }, document,
+    localStorage: { getItem() { return ''; } }, encodeURIComponent, AbortController, setTimeout, clearTimeout,
+    fail() {
+      calls++;
+      assert.equal(buy.disabled, true); assert.equal(buy.attrs['aria-busy'], 'true');
+      assert.equal(buy.textContent, '正在前往安全付款頁…');
+      throw Object.assign(new Error('provider detail must stay hidden'), { status: 503, code: 'PAYMENT_UNAVAILABLE' });
+    },
+  });
+  context.window = context;
+  vm.runInContext(read('public/fellow/app.js'), context);
+  context.checkoutButton = buy;
+  await vm.runInContext('api = async () => fail(); startCheckout(checkoutButton)', context);
+  assert.equal(buy.disabled, false); assert.equal(buy.textContent, '成為創始會員');
+  assert.equal(feedback.focused, true); assert.match(feedback.innerHTML, /重試/);
+  assert.match(feedback.innerHTML, /mailto:us@emoji\.tw/); assert.doesNotMatch(feedback.innerHTML, /provider detail/);
+  await retry.listeners.click();
+  assert.equal(calls, 2);
 });
 
 test('space markdown passes parsed HTML to the sanitizer and fails closed without it', () => {

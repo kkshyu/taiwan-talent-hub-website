@@ -60,6 +60,14 @@
 }
 
 .fnd-invite__cta{display:flex;gap:14px;margin-top:2.3rem;flex-wrap:wrap}
+.checkout-note{margin:12px 0 0;max-width:54ch;color:var(--muted);font-size:1rem;line-height:1.65}
+.checkout-feedback{
+  margin-top:16px;padding:16px 18px;border:1px solid var(--seal);border-radius:var(--r);
+  background:var(--paper-card);color:var(--ink);max-width:42rem;
+}
+.checkout-feedback p{margin:0 0 12px;line-height:1.7}
+.checkout-feedback div{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.checkout-feedback a{color:var(--seal);text-decoration:underline;text-underline-offset:3px}
 
 /* -------------------------------------------------------------------------
    名冊卡 — 條件（terms-card 沿用）＋稀缺主視覺＋創始牆

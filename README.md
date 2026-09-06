@@ -41,8 +41,8 @@ DB 未設定時伺服器優雅降級：靜態頁照常，`/api/*` 回 503。
 | `APP_SECRET` | token 簽章金鑰（務必設定） |
 | `SUPER_ADMIN_EMAIL` | 超級管理員 Google 帳號（預設 `us@twouring.com`），可於後台指派其他管理員 |
 | `ADMIN_API_KEY` | AI agent 管理 API 金鑰（`openssl rand -hex 32`）；等同超管權限，未設＝停用，詳見 [docs/API.md](docs/API.md) |
-| `STRIPE_SECRET_KEY` | Stripe 結帳；未設時 `/api/checkout` 回 503 |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook 簽章；未設時付費活動 fail closed |
+| `STRIPE_SECRET_KEY` | Stripe 結帳；只使用 Emoji 言文字帳號 `acct_1Ts2y95NXMKDsl40`；未設時 `/api/checkout` 回 503 |
+| `STRIPE_WEBHOOK_SECRET` | 同帳號送至 `/api/stripe/webhook` 的簽章；未設時付費活動 fail closed |
 | `EVENT_QR_SECRET` | 活動票券 QR 簽章；留空時沿用 `ACCESS_QR_SECRET` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | 會員專區 Google 登入 |
 | `PUBLIC_ORIGIN` | 站台對外網址（正式：`https://www.emoji.tw`），供 Stripe 導回與 Google callback |
@@ -74,5 +74,5 @@ DB 未設定時伺服器優雅降級：靜態頁照常，`/api/*` 回 503。
 
 - 每點 NT$1（2026-07-25 起，1 點＝1 元）；購買本金無效期可退未使用部分；加贈／會籍贈點預設一年、不退現。
 - 會籍贈點：月會員 1,000 點、季會員 3,000 點、年會員 10,000 點、創始會員 20,000 點。
-- 兌換（須 Active）：淋浴 70 點／次、膠囊休憩席／娛樂室各 100 點／小時；包場現金。
+- 兌換（須持有效會籍）：淋浴 70 點／次、膠囊休憩席／娛樂室各 100 點／小時；包場現金。
 - 規格：`docs/superpowers/specs/2026-07-12-member-points-design.md`（點值以本節與 `lib/points.js` 為準）

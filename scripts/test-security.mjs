@@ -21,7 +21,7 @@ const paid = { id: order.stripe_session_id, payment_status: 'paid', currency: 't
 
 // Execute real Express routes with isolated DB/payment doubles; this never reads .env or opens an external service.
 async function server(t, { query, stripe = {}, env = {} } = {}) {
-  const log = [];
+  const log = [], errors = [];
   const run = async (sql, args = []) => {
     log.push({ sql, args });
     const result = await query?.(sql, args);
@@ -42,7 +42,7 @@ async function server(t, { query, stripe = {}, env = {} } = {}) {
       GOOGLE_CLIENT_ID: 'stub', PUBLIC_ORIGIN: 'http://127.0.0.1', ACCESS_QR_SECRET: secret, ACCESS_DOOR_SECRET: secret, ...env } },
     Buffer, URL, URLSearchParams, AbortSignal, Date, setTimeout,
     fetch: () => { throw new Error('External network forbidden in test'); },
-    console: { log() {}, warn() {}, error() {} },
+    console: { log() {}, warn() {}, error(...args) { errors.push(args.join(' ')); } },
   });
   new vm.Script(readFileSync(path.join(root, 'server.js'), 'utf8') + '\ndbReady = true;').runInContext(context);
   const http = module.exports.app.listen(0, '127.0.0.1');
@@ -54,7 +54,7 @@ async function server(t, { query, stripe = {}, env = {} } = {}) {
     headers: { ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(token ? { authorization: `Bearer ${token}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  return { request, base, log };
+  return { request, base, log, errors };
 }
 
 test('session is purpose-bound, expiring, strictly segmented and rejects non-ASCII signatures safely', () => {
@@ -194,13 +194,32 @@ test('point webhook credits once; a mismatched session cannot credit the order',
 test('founding checkout counts live reservations and locks before scanning Stripe', async t => {
   let scans = 0, created = 0;
   const stripe = { checkout: { sessions: {
-    async *list({ status }) { scans++; if (status === 'open') yield { id: 'cs_reserved', metadata: { plan: 'founding-member' }, payment_status: 'unpaid', expires_at: Date.now() / 1000 + 100 }; },
+    async *list({ status, created: range }) {
+      scans++;
+      assert.equal(range.gte, Math.floor(Date.parse('2026-07-11T00:00:00+08:00') / 1000));
+      if (status === 'open') yield { id: 'cs_reserved', metadata: { plan: 'founding-member' }, payment_status: 'unpaid', expires_at: Date.now() / 1000 + 100 };
+    },
     async create() { created++; return { url: 'https://checkout.stripe.com/test' }; },
   } } };
   const { request, log } = await server(t, { stripe, env: { MAX_PARTICIPANTS: '1', SALE_END: '2099-01-01' } });
   assert.equal((await request('/api/checkout', {})).status, 409);
   assert.equal(scans, 1); assert.equal(created, 0);
   assert.match(log[1].sql, /pg_advisory_xact_lock/);
+  assert.equal(log.at(-1).sql, 'ROLLBACK');
+});
+
+test('Stripe provider outages are retryable 503 responses and never expose credential details', async t => {
+  const expired = Object.assign(new Error('Expired API Key provided: sk_live_sensitive'),
+    { type: 'StripeAuthenticationError', code: 'api_key_expired' });
+  const stripe = { checkout: { sessions: { async *list() { throw expired; } } } };
+  const { request, log, errors } = await server(t, { stripe, env: { SALE_END: '2099-01-01' } });
+  const response = await request('/api/checkout', {});
+  const body = await response.json();
+  assert.equal(response.status, 503);
+  assert.deepEqual(body, { error: '付款服務暫時無法使用，請稍後再試。', code: 'PAYMENT_UNAVAILABLE' });
+  assert.doesNotMatch(JSON.stringify(body), /sk_live|Expired API Key/);
+  assert.doesNotMatch(errors.join('\n'), /sk_live|Expired API Key/);
+  assert.match(errors.join('\n'), /StripeAuthenticationError api_key_expired/);
   assert.equal(log.at(-1).sql, 'ROLLBACK');
 });
 
