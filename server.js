@@ -2435,11 +2435,13 @@ app.get('/api/checkout/verify', wrap(async (req, res) => {
 
 /* ---- 前端靜態檔（官網掛 /、fellow 一頁式掛 /fellow；伺服器源碼不外露） ---- */
 const PUB = path.join(__dirname, 'public');
-// 各計畫一頁式：fellow／partner／startup × 中/en/ja。
+// 各計畫一頁式：fellow／startup × 中/en/ja。
 // 精確路由先於 static，讓無斜線路徑（/partner、/en/startup…）直接回 200 不轉址；
 // 資產（styles/app/kk）皆共用 /fellow/*，各語系計畫頁以絕對路徑引用。
 // HTML 經 layout 組裝 header／footer（SEO／GEO：回應已含完整 markup）。
-const PROGRAMS = ['fellow', 'partner', 'startup'];
+// 活動場地已併入活動頁：舊 /partner 三語 301 至 /events#venue
+for (const pre of ['', '/en', '/ja']) app.get(pre + '/partner', (req, res) => res.redirect(301, pre + '/events#venue'));
+const PROGRAMS = ['fellow', 'startup'];
 for (const prog of PROGRAMS) {
   for (const pre of ['', 'en', 'ja']) {
     const parts = pre ? [pre, prog] : [prog];

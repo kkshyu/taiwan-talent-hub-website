@@ -105,7 +105,7 @@ test('shared event pages return localized metadata before JavaScript runs', () =
   const raw = `<!doctype html><html lang="zh-Hant"><head><title>活動</title><meta name="description" content="中文"></head><body>${MARKER_HEADER}${MARKER_FOOTER}</body></html>`;
   const list = composeLayout(raw, '/en/events');
   assert.match(list, /<html lang="en">/);
-  assert.match(list, /<title>Events \| emoji/);
+  assert.match(list, /<title>Events and venue \| emoji/);
   assert.match(list, /canonical" href="https:\/\/www\.emoji\.tw\/en\/events"/);
   assert.match(list, /hreflang="zh-Hant" href="https:\/\/www\.emoji\.tw\/events"/);
   assert.match(list, /property="og:title" content="Events/);
@@ -167,7 +167,7 @@ test('header partials prioritize visitor tasks and keep brand material in the fo
     assert.doesNotMatch(h, /\/cis\/|Programs|聚落計畫|プログラム/);
     assert.match(h, /NAV_SYSTEM_CURRENT/);
     assert.match(h, new RegExp(`href="${expect[lang].prefix}/system"[^>]*>\\s*${expect[lang].label}`));
-    const positions = ['space', 'system', 'events', 'partner', 'access', 'about'].map(slug => h.indexOf(`href="${expect[lang].prefix}/${slug}"`));
+    const positions = ['space', 'system', 'events', 'access', 'about'].map(slug => h.indexOf(`href="${expect[lang].prefix}/${slug}"`));
     assert.ok(positions.every((position, index) => position >= 0 && (!index || position > positions[index - 1])), `${lang} nav order`);
     assert.match(h, new RegExp(`href="${expect[lang].prefix}/fellow" class="btn"`));
   }
@@ -235,7 +235,7 @@ test('system zh page structure', () => {
   assert.match(html, /id="booking"/);
   assert.match(html, /id="cafe"/);
   assert.match(html, /href="\/fellow"/);
-  assert.match(html, /href="\/partner"/);
+  assert.match(html, /href="\/events#venue"/);
   assert.match(html, /href="\/space"/);
   assert.match(html, /NT\$\s*4,000|NT\$4,000/);
   assert.doesNotMatch(html, /旅館|hotel|住宿|過夜|共居|居住|入住|酒吧|Cafe &amp; Bar|Cafe & Bar|Member Plaza|Talent Lounge/i);
@@ -250,7 +250,7 @@ test('system en page structure', () => {
   assert.match(html, /lang="en"/);
   assert.match(html, /id="membership"/);
   assert.match(html, /href="\/en\/fellow"/);
-  assert.match(html, /href="\/en\/partner"/);
+  assert.match(html, /href="\/en\/events#venue"/);
   assert.match(html, /href="\/en\/space"/);
   assert.match(html, /canonical" href="https:\/\/www\.emoji\.tw\/en\/system"/);
   assert.doesNotMatch(html, /旅館|hotel|住宿|過夜|共居|居住|入住|酒吧|Cafe &amp; Bar|Cafe & Bar|Member Plaza|Talent Lounge/i);
@@ -261,7 +261,7 @@ test('system ja page structure', () => {
   assert.match(html, /lang="ja"/);
   assert.match(html, /id="membership"/);
   assert.match(html, /href="\/ja\/fellow"/);
-  assert.match(html, /href="\/ja\/partner"/);
+  assert.match(html, /href="\/ja\/events#venue"/);
   assert.match(html, /href="\/ja\/space"/);
   assert.match(html, /canonical" href="https:\/\/www\.emoji\.tw\/ja\/system"/);
   assert.doesNotMatch(html, /旅館|hotel|宿泊|ホテル|過夜|共居|居住|入住/i);
@@ -269,9 +269,9 @@ test('system ja page structure', () => {
 
 test('plan choices, venue enquiries and account limits are explicit in all locales', () => {
   const pages = [
-    ['system.html', 'data-label="適合情境"', '11 月 1 日正式開幕後開放', '/event-application', '24 小時（條件式啟用）'],
-    [path.join('en', 'system.html'), 'data-label="Best for"', 'Available after the November 1 grand opening', '/en/event-application', '24-hour access (conditional)'],
-    [path.join('ja', 'system.html'), 'data-label="おすすめ"', '11月1日の正式オープン後に利用開始', '/ja/event-application', '24時間利用（条件付き）'],
+    ['system.html', 'data-label="適合情境"', '現場辦理', '/event-application', '24 小時（條件式啟用）'],
+    [path.join('en', 'system.html'), 'data-label="Best for"', 'Available on site', '/en/event-application', '24-hour access (conditional)'],
+    [path.join('ja', 'system.html'), 'data-label="おすすめ"', '現地で利用開始', '/ja/event-application', '24時間利用（条件付き）'],
   ];
   for (const [rel, situation, availability, application, conditionalAccess] of pages) {
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
@@ -298,55 +298,36 @@ test('plan choices, venue enquiries and account limits are explicit in all local
   }
 });
 
-test('partner pages route community events to applications and business events to email', () => {
-  const pages = [
-    ['partner/index.html', '/event-application', /企業／團隊／客戶活動/],
-    [path.join('en', 'partner', 'index.html'), '/en/event-application', /Company, team or client event/i],
-    [path.join('ja', 'partner', 'index.html'), '/ja/event-application', /企業・チーム・顧客向け/],
-  ];
-
-  for (const [rel, applicationPath, businessMarker] of pages) {
-    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
-    const routeBlocks = [...html.matchAll(/<div class="(?:hero-cta|pagenav)"[^>]*>([\s\S]*?)<\/div>/g)]
-      .map(match => match[1]);
-    assert.ok(routeBlocks.length >= 5, `${rel} repeats both routes at key decisions`);
-    for (const block of routeBlocks) {
-      assert.ok(block.includes(`href="${applicationPath}"`), `${rel} CTA includes community application`);
-      assert.match(block, /href="mailto:us@emoji\.tw\?subject=/, `${rel} CTA includes business email`);
-    }
-
-    const cards = [...html.matchAll(/<div class="ptn-brick">([\s\S]*?)<\/p><\/div>/g)]
-      .map(match => match[1]);
-    const businessCards = cards.filter(card => businessMarker.test(card));
-    assert.equal(businessCards.length, 1, `${rel} has one business event card`);
-    assert.match(businessCards[0], /href="mailto:us@emoji\.tw\?subject=/);
-    assert.ok(!businessCards[0].includes(`href="${applicationPath}"`), `${rel} business card does not use community application`);
-
-    const communityCards = cards.filter(card => !businessMarker.test(card)).slice(0, 5);
-    assert.equal(communityCards.length, 5, `${rel} has five community event cards`);
-    for (const card of communityCards) {
-      assert.ok(card.includes(`href="${applicationPath}"`), `${rel} community card uses venue application`);
-      assert.doesNotMatch(card, /href="mailto:us@emoji\.tw/);
-    }
+test('events page carries the venue guide in all three languages and routes both enquiry types', () => {
+  const html = fs.readFileSync(path.join(PUB, 'events.html'), 'utf8');
+  for (const lang of ['zh', 'en', 'ja']) {
+    const block = html.match(new RegExp('<div class="ev-lang" data-lang="' + lang + '"[\\s\\S]*?\\n</div>\\n'));
+    assert.ok(block, `${lang} venue block`);
+    assert.match(block[0], /href="mailto:us@emoji\.tw\?subject=/, `${lang} business email`);
+    assert.match(block[0], /ev-facts/, `${lang} venue facts`);
+    assert.match(block[0], /ev-notes/, `${lang} honest notes`);
   }
+  assert.match(html, /id="venue"/);
+  assert.match(html, /id="notes"/);
+  assert.match(html, /base\+'\/event-application'/);
 });
 
-test('public opening copy and Japanese membership terms match the customer flow', () => {
+test('public hours copy carries no opening wording and Japanese membership terms match the customer flow', () => {
   const opening = [
-    ['access.html', '11 月 1 日正式開幕後'],
-    [path.join('en', 'access.html'), 'November 1, 2026 grand opening'],
-    [path.join('ja', 'access.html'), '2026年11月1日の正式オープン後'],
+    ['access.html', '營業時間'],
+    [path.join('en', 'access.html'), 'Opening hours'],
+    [path.join('ja', 'access.html'), '営業時間'],
   ];
   for (const [rel, expected] of opening) {
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
     assert.ok(html.includes(expected));
-    assert.doesNotMatch(html, /試營運起|from the soft opening|プレオープンより/);
+    assert.doesNotMatch(html, /試營運|開幕|grand opening|soft opening|正式オープン|プレオープン/);
   }
-  const footerOpening = { zh: '11 月 1 日正式開幕後', en: 'November 1 grand opening', ja: '11月1日の正式オープン後' };
+  const footerOpening = { zh: '在咖啡 08:00', en: 'at cafe 08:00', ja: '在咖啡 08:00' };
   for (const lang of ['zh', 'en', 'ja']) {
     const footer = fs.readFileSync(path.join(__dirname, '..', 'views', 'partials', `footer-${lang}.html`), 'utf8');
     assert.ok(footer.includes(footerOpening[lang]));
-    assert.doesNotMatch(footer, /試營運起|from soft opening|プレオープンより/);
+    assert.doesNotMatch(footer, /試營運|開幕|grand opening|soft opening|正式オープン|プレオープン/);
   }
   for (const rel of ['member.html', path.join('en', 'member.html'), path.join('ja', 'member.html'), path.join('ja', 'fellow', 'index.html')]) {
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');

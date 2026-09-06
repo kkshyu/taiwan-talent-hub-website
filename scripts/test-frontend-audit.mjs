@@ -58,7 +58,7 @@ function eventContext(lang = 'zh', storageBlocked = false) {
       getItem(k) { return values.get(k); },
       removeItem(k) { values.delete(k); },
     },
-    document: { getElementById() { return {}; } },
+    document: { getElementById() { return {}; }, querySelectorAll() { return []; } },
   });
   const code = [...read('public/events.html').matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
   vm.runInContext(code.replace(/main\(\);\s*$/, ''), context);

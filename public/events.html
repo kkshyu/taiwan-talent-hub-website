@@ -6,7 +6,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>活動｜言文字・台灣人才聚落</title>
+<title>活動與場地｜言文字・台灣人才聚落</title>
 <meta name="description" content="查看並報名言文字・台灣人才聚落的公開與私人活動。">
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,14 +18,16 @@
 <style>
   .ev-main{max-width:1080px;margin:0 auto;padding:72px 24px 104px;min-height:65vh}
   .ev-hero{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin-bottom:42px}
-  .ev-kicker{letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-size:1rem;margin:0 0 10px}
-  .ev-h1{font-family:var(--serif);font-size:clamp(2.3rem,6vw,4.8rem);font-weight:600;line-height:1;margin:0}
+  .ev-hero[hidden]{display:none}
+  .ev-kicker{letter-spacing:.14em;color:var(--muted);font-size:1rem;margin:0 0 10px}
+  .ev-h1{font-family:var(--serif);font-size:clamp(2rem,4.6vw,3.4rem);font-weight:500;line-height:1.2;margin:0}
   .ev-intro{color:var(--ink-soft);max-width:520px;line-height:1.8;margin:18px 0 0}
   .ev-apply{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:24px;border:1px solid var(--ink);border-radius:var(--radius-sm);margin-bottom:36px;background:var(--paper-alt)}
   .ev-apply h2{font-size:1.4rem;margin:0 0 8px}.ev-apply p{color:var(--muted)}.ev-apply__actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}.ev-apply .btn{flex-shrink:0;background:var(--accent);color:var(--ink)}.ev-apply .btn--ghost{background:var(--paper)}.ev-apply[hidden]{display:none}
   @media(max-width:760px){.ev-apply{align-items:flex-start;flex-direction:column}.ev-apply__actions{width:100%;flex-direction:column}.ev-apply .btn{width:100%;justify-content:center}}
   .ev-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-  .ev-card,.ev-detail{border:1px solid var(--ink);border-radius:20px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+  .ev-card,.ev-detail{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);overflow:hidden}
+  .ev-card:hover{border-color:var(--ink)}
   .ev-card a{display:block;color:inherit;text-decoration:none;padding:26px;height:100%;box-sizing:border-box}
   .ev-card h2{font-family:var(--serif);font-size:1.55rem;margin:8px 0 12px}
   .ev-meta{color:var(--muted);line-height:1.65;font-size:1rem}
@@ -33,29 +35,90 @@
   .ev-row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
   .ev-price{font-weight:700;font-variant-numeric:tabular-nums}
   .ev-card__cta{display:block;margin-top:14px;font-weight:700;text-decoration:underline;text-underline-offset:4px}
-  .ev-pill{display:inline-flex;border:1px solid var(--ink);border-radius:999px;padding:.28em .72em;font-size:1rem;background:var(--accent)}
-  .ev-pill.private{background:var(--paper)}
+  .ev-pill{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-sm);padding:.2em .6em;font-size:1rem;color:var(--ink-soft);background:var(--paper)}
   .ev-detail{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr)}
   .ev-copy{padding:clamp(28px,5vw,58px)}
-  .ev-side{padding:32px;border-left:1px solid var(--ink);background:rgba(255,222,52,.1)}
+  .ev-side{padding:32px;border-left:1px solid var(--line);background:var(--paper-alt)}
   .ev-side .btn{width:100%;justify-content:center;box-sizing:border-box;margin-top:10px}
   .ev-note{font-size:1rem;color:var(--muted);line-height:1.65;margin-top:14px}
   .ev-qr{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);text-align:center}
-  .ev-qr img{display:block;margin:12px auto;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--line)}
+  .ev-qr img{display:block;margin:12px auto;background:#fff;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--line)}
   .ev-back{display:inline-block;margin-bottom:24px;color:var(--ink-soft);text-underline-offset:4px}
-  .ev-empty{padding:42px;border:1px dashed var(--line);border-radius:18px;color:var(--muted);text-align:center;grid-column:1/-1}
-  .ev-empty:has(.btn)::before{content:"";display:block;width:112px;height:76px;margin:0 auto 16px;background:url('/cis/assets/moji/moji-meet.svg') center/contain no-repeat}
+  .ev-empty{padding:42px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);text-align:left;grid-column:1/-1}
+  .ev-empty:has(.btn)::before{content:"";display:block;width:112px;height:76px;margin:0 0 16px;background:url('/cis/assets/moji/moji-meet.svg') center/contain no-repeat}
   .ev-empty p{margin:0 0 18px}
-  .ev-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:90;background:var(--ink);color:var(--paper);padding:.75em 1.2em;border-radius:12px;max-width:min(420px,92vw)}
+  /* 場地與須知（原 /partner 併入） */
+  .ev-lang[hidden]{display:none}
+  .ev-venue{margin-top:clamp(56px,8vw,88px);padding-top:clamp(40px,6vw,64px);border-top:1px solid var(--line)}
+  .ev-venue .sec-head{margin-bottom:28px}
+  .ev-venue__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start}
+  .ev-venue__grid figure{margin:0}
+  .ev-venue__grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);border-radius:var(--radius-sm)}
+  .ev-venue__grid figcaption{margin-top:9px;color:var(--muted);font-size:1rem}
+  .ev-facts{margin:0;border-top:1px solid var(--line)}
+  .ev-facts>div{display:grid;grid-template-columns:minmax(4.5em,7em) 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .ev-facts dt{color:var(--muted)}
+  .ev-facts dd{margin:0;color:var(--ink-soft);line-height:1.8}
+  .ev-facts dd b{display:block;font-family:var(--serif);font-weight:500;color:var(--ink)}
+  .ev-notes{max-width:64ch}
+  .ev-notes p{margin:0 0 1em;color:var(--ink-soft);line-height:1.9}
+  .ev-contact{margin-top:24px;display:grid;gap:6px;color:var(--ink-soft)}
+  .ev-contact a{text-decoration:underline;text-underline-offset:3px;color:var(--ink)}
+  @media(max-width:760px){.ev-venue__grid{grid-template-columns:1fr}}
+  .ev-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:90;background:var(--ink);color:var(--paper);padding:.75em 1.2em;border-radius:var(--radius-sm);max-width:min(420px,92vw)}
   .ev-toast[hidden]{display:none}
-  @media(max-width:760px){.ev-main{padding:44px 18px 80px}.ev-hero{grid-template-columns:1fr}.ev-grid{grid-template-columns:1fr}.ev-detail{grid-template-columns:1fr}.ev-side{border-left:0;border-top:1px solid var(--ink)}}
+  @media(max-width:760px){.ev-main{padding:44px 18px 80px}.ev-hero{grid-template-columns:1fr}.ev-grid{grid-template-columns:1fr}.ev-detail{grid-template-columns:1fr}.ev-side{border-left:0;border-top:1px solid var(--line)}}
 </style>
 </head>
 <body>
 <!--SITE_HEADER-->
 <main class="ev-main" id="content">
+  <section class="ev-hero" id="ev-hero"><div><p class="ev-kicker" id="ev-kicker">言文字｜台灣人才聚落</p><h1 class="ev-h1" id="ev-title">活動</h1><p class="ev-intro" id="ev-intro">查看講座、交流晚餐與主題活動，選擇場次並完成報名。三樓場地的申請方式與條件也在這一頁。</p></div></section>
   <div id="ev-app"><div class="ev-empty">載入活動中…</div></div>
   <section class="ev-apply" id="ev-apply"><div><h2 id="ev-apply-title">辦社群講座、工作坊或交流活動</h2><p id="ev-apply-copy">社群主辦人可提出 3F 場地申請；送出申請不代表場地已保留。</p></div><div class="ev-apply__actions"><a class="btn" id="ev-apply-link" href="/event-application">填寫 3F 社群活動申請 →</a><a class="btn btn--ghost" id="ev-business-link" href="mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry">企業／團隊包場請來信 →</a></div></section>
+<div id="venue"></div>
+<div class="ev-lang" data-lang="zh" lang="zh-Hant">
+<section class="ev-venue" id="venue-zh">
+  <div class="sec-head"><span class="eyebrow">三樓場地</span><h2>在三樓辦活動，前後到一樓用餐</h2><p>全棟約 85 坪（約 281 m²）。社群講座、工作坊、交流、讀書會與 Meetup 走場地申請；企業、團隊、客戶活動、Offsite、成果發表與包場走 Email 洽詢。</p></div>
+  <div class="ev-venue__grid">
+    <figure><img src="/assets/space/3f-concept.jpg" alt="三樓共享辦公與活動空間規劃示意" width="1400" height="845" loading="lazy" decoding="async"><figcaption>三樓共享辦公與活動空間規劃示意</figcaption></figure>
+    <dl class="ev-facts"><div><dt>位置</dt><dd><b>站前地下街 Z10 出口斜對面</b>台北市中正區重慶南路一段 11 號，適合邀請來自不同地區的來賓。</dd></div><div><dt>佈局</dt><dd><b>可移動家具</b>可依講座、小組工作或開放交流調整桌椅佈置；實際方案另行書面確認。</dd></div><div><dt>設備</dt><dd><b>100 吋以上投影</b>提出需求時說明畫面、音訊與電力需求，再確認可用設備與進撤場安排。</dd></div><div><dt>餐飲</dt><dd><b>三樓點心，一樓用餐</b>三樓有自助點心吧；活動前後可到一樓用餐，實際餐飲安排另行書面確認。</dd></div></dl>
+  </div>
+</section>
+<section class="ev-venue" id="notes">
+  <div class="sec-head"><span class="eyebrow">須知</span><h2>提出需求前先確認</h2></div>
+  <div class="ev-notes"><p>社群講座、工作坊、交流、讀書會與 Meetup 以場地申請表提出；企業、團隊、客戶活動與 Offsite 以 Email 洽詢。實際檔期、費用與使用條件另行書面確認。</p><p>實際權益與義務，以雙方簽署的書面合約為準。空間使用範圍與時段、費用或分潤、票務與名單的處理，都會在合約中逐一寫明。</p><p>場地使用不得排擠核心社群時段。直銷、投資詐騙、宗教及政治動員活動不予承接。</p><p>送出場地申請或 Email 洽詢都不代表預約成立，須待雙方對檔期、費用、使用範圍與條件完成書面確認。</p></div>
+  <div class="ev-contact"><span>企業活動 Email：<a href="mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry">us@emoji.tw</a></span><span>電話：<a href="tel:+886921102067">+886 921 102 067</a></span><span>地址：台北市中正區重慶南路一段 11 號（台北車站站前地下街 Z10 出口斜對面）</span></div>
+</section>
+</div>
+<div class="ev-lang" data-lang="en" lang="en">
+<section class="ev-venue" id="venue-en">
+  <div class="sec-head"><span class="eyebrow">3F venue</span><h2>Host on 3F and dine on 1F before or after</h2><p>The building spans about 85 ping (about 281 m²). Community talks, workshops, networking, book clubs and meetups use the venue application; company, team and client events, offsites, showcases and buyouts use email.</p></div>
+  <div class="ev-venue__grid">
+    <figure><img src="/assets/space/3f-concept.jpg" alt="3F coworking and event space · concept rendering" width="1400" height="845" loading="lazy" decoding="async"><figcaption>3F coworking and event space · concept rendering</figcaption></figure>
+    <dl class="ev-facts"><div><dt>Location</dt><dd><b>Diagonally across from Exit Z10</b>No. 11, Sec. 1, Chongqing S. Rd., Zhongzheng Dist., Taipei, convenient for guests arriving from different areas.</dd></div><div><dt>Layout</dt><dd><b>Movable furniture</b>Furniture can be arranged for talks, small-group work or open networking. The final setup requires separate written confirmation.</dd></div><div><dt>Equipment</dt><dd><b>100-inch-plus projection</b>List your display, audio and power requirements so we can confirm available equipment and load-in arrangements.</dd></div><div><dt>Food</dt><dd><b>3F snacks and 1F dining</b>A self-serve snack bar is on 3F. Guests can dine on 1F before or after the event; arrangements require separate written confirmation.</dd></div></dl>
+  </div>
+</section>
+<section class="ev-venue" id="notes-en">
+  <div class="sec-head"><span class="eyebrow">Before you enquire</span><h2>Check these terms first</h2></div>
+  <div class="ev-notes"><p>Use the venue application for community talks, workshops, networking sessions, book clubs and meetups. Email us about company, team and client events and offsites. Availability, fees and terms require separate written confirmation.</p><p>Actual rights and obligations follow the agreement signed by both parties. It will specify the areas and times, fees or revenue share, ticketing and attendee-list handling.</p><p>Venue use must not displace core community hours. We do not accept multi-level marketing, investment scams, religious recruitment or political mobilization.</p><p>Submitting a venue application or sending an email enquiry does not create a booking. A booking is confirmed only after both sides agree in writing on availability, fees, areas and terms.</p></div>
+  <div class="ev-contact"><span>Business event email: <a href="mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry">us@emoji.tw</a></span><span>Phone: <a href="tel:+886921102067">+886 921 102 067</a></span><span>Address: No. 11, Sec. 1, Chongqing S. Rd., Zhongzheng Dist., Taipei (diagonally across from Exit Z10 of the Taipei City Mall by Taipei Main Station)</span></div>
+</section>
+</div>
+<div class="ev-lang" data-lang="ja" lang="ja">
+<section class="ev-venue" id="venue-ja">
+  <div class="sec-head"><span class="eyebrow">3階会場</span><h2>3階で開催し、前後は1階で飲食</h2><p>建物全体で約85坪（約281㎡）。コミュニティ講演、ワークショップ、交流会、読書会、Meetupは会場申請へ。企業・チーム・顧客向けイベント、オフサイト、成果発表、貸切はEmailでお問い合わせください。</p></div>
+  <div class="ev-venue__grid">
+    <figure><img src="/assets/space/3f-concept.jpg" alt="3Fコワーキング・イベントスペース · 完成イメージ" width="1400" height="845" loading="lazy" decoding="async"><figcaption>3Fコワーキング・イベントスペース · 完成イメージ</figcaption></figure>
+    <dl class="ev-facts"><div><dt>場所</dt><dd><b>Z10出口の斜め向かい</b>台北市中正区重慶南路一段11号。異なる地域からゲストを招くイベントに便利です。</dd></div><div><dt>レイアウト</dt><dd><b>可動式家具</b>講演、小グループ作業、オープンな交流に合わせて配置を調整できます。最終的な配置は相談後に書面で確認します。</dd></div><div><dt>設備</dt><dd><b>100インチ以上の投影</b>映像、音響、電源の要件をお知らせいただき、利用可能な設備と搬入出を確認します。</dd></div><div><dt>飲食</dt><dd><b>3階の軽食、1階の飲食</b>3階にセルフ軽食バーがあります。イベント前後は1階で飲食でき、実際の手配は相談後に書面で確認します。</dd></div></dl>
+  </div>
+</section>
+<section class="ev-venue" id="notes-ja">
+  <div class="sec-head"><span class="eyebrow">ご確認事項</span><h2>申請前に確認すること</h2></div>
+  <div class="ev-notes"><p>コミュニティ講演、ワークショップ、交流会、読書会、Meetupは会場申請フォーム、企業・チーム・顧客向けイベントとオフサイトはEmailで受け付け、空き状況、費用、利用条件を書面で確認します。</p><p>実際の権利と義務は、双方が署名した契約に基づきます。空間の利用範囲と時間帯、費用や収益分配、チケットと名簿の取り扱いは、契約の中で一つずつ明記します。</p><p>会場の利用が中核コミュニティの時間帯を妨げてはなりません。マルチ商法・投資詐欺・宗教および政治的な動員活動はお受けしません。</p><p>会場申請の送信やEmail相談だけで予約は成立しません。空き状況、費用、利用範囲、条件について、双方が書面で合意した後に確定します。</p></div>
+  <div class="ev-contact"><span>企業向けイベント Email：<a href="mailto:us@emoji.tw?subject=3F%20business%20venue%20enquiry">us@emoji.tw</a></span><span>電話：<a href="tel:+886921102067">+886 921 102 067</a></span><span>住所：台北市中正区重慶南路一段11号（台北駅地下街 Z10 出口の斜め向かい）</span></div>
+</section>
+</div>
 </main>
 <div class="ev-toast" id="ev-toast" hidden role="status" aria-live="polite"></div>
 <!--SITE_FOOTER-->
@@ -74,10 +137,11 @@ const lang=(location.pathname.match(/^\/(en|ja)(\/|$)/)||[, 'zh'])[1];
 const locale=lang==='zh'?'zh-TW':lang==='ja'?'ja-JP':'en-US';
 const base=lang==='zh'?'':'/'+lang;
 const T={
-  zh:{title:'活動',intro:'查看講座、交流晚餐與主題活動，選擇場次並完成報名。公開活動會列在這裡；私人活動由主辦方分享專屬連結。',details:'查看詳情／報名',empty:'目前沒有開放報名的公開活動。',follow:'追蹤 Instagram，取得活動消息',back:'← 回到所有活動',private:'私人活動',public:'公開活動',free:'免費',capacity:(n,c)=>c>0?`已報名 ${n}／${c} 人`:`已報名 ${n} 人`,time:'時間待定',place:'地點待定',login:'登入後報名',register:'立即報名',pay:'前往付款',resume:'繼續付款',ticket:'顯示活動票券',cancel:'取消報名',full:'名額已滿',paid:'付款完成，活動票券已成立。',canceled:'付款已取消，名額會保留至結帳連結到期。',checked:'已完成簽到',pending:'等待付款',privacy:'報名時會使用你的 Google 姓名與 Email，僅供活動報名、付款核對與現場簽到。',notFound:'找不到這個活動。',error:'目前無法載入活動，請稍後再試。'},
-  en:{title:'Events',intro:'Browse talks, networking dinners and themed events, then choose a session and register. Public events appear here; private events are shared by direct link.',details:'View details / register',empty:'No public events are open right now.',follow:'Follow Instagram for event updates',back:'← All events',private:'Private event',public:'Public event',free:'Free',capacity:(n,c)=>c>0?`${n} / ${c} registered`:`${n} registered`,time:'Time TBA',place:'Location TBA',login:'Sign in to register',register:'Register',pay:'Continue to payment',resume:'Resume payment',ticket:'Show event ticket',cancel:'Cancel registration',full:'Sold out',paid:'Payment confirmed. Your event ticket is ready.',canceled:'Payment was canceled. Your spot remains held until checkout expires.',checked:'Checked in',pending:'Payment pending',privacy:'We use your Google name and email only for event registration, payment reconciliation, and check-in.',notFound:'Event not found.',error:'Events are temporarily unavailable.'},
-  ja:{title:'イベント',intro:'講座、交流ディナー、テーマイベントを確認し、参加する回を選んでお申し込みください。公開イベントは一覧に表示され、非公開イベントは主催者から専用リンクで共有されます。',details:'詳細・申込を見る',empty:'現在、申込受付中の公開イベントはありません。',follow:'Instagramでイベント情報を見る',back:'← イベント一覧',private:'非公開イベント',public:'公開イベント',free:'無料',capacity:(n,c)=>c>0?`申込 ${n}／${c} 名`:`申込 ${n} 名`,time:'日時未定',place:'場所未定',login:'ログインして申込',register:'申し込む',pay:'支払いへ進む',resume:'支払いを続ける',ticket:'チケットを表示',cancel:'申込を取り消す',full:'満席',paid:'支払いを確認しました。チケットが発行されました。',canceled:'支払いはキャンセルされました。Checkout の期限まで枠を確保します。',checked:'チェックイン済み',pending:'支払い待ち',privacy:'Google の氏名とメールは、申込・支払い照合・受付のためにのみ使用します。',notFound:'イベントが見つかりません。',error:'現在イベントを読み込めません。'}
+  zh:{title:'活動',intro:'查看講座、交流晚餐與主題活動，選擇場次並完成報名。三樓場地的申請方式與條件也在這一頁。',details:'查看詳情／報名',empty:'目前沒有開放報名的公開活動。',follow:'追蹤 Instagram，取得活動消息',back:'← 回到所有活動',private:'私人活動',public:'公開活動',free:'免費',capacity:(n,c)=>c>0?`已報名 ${n}／${c} 人`:`已報名 ${n} 人`,time:'時間待定',place:'地點待定',login:'登入後報名',register:'立即報名',pay:'前往付款',resume:'繼續付款',ticket:'顯示活動票券',cancel:'取消報名',full:'名額已滿',paid:'付款完成，活動票券已成立。',canceled:'付款已取消，名額會保留至結帳連結到期。',checked:'已完成簽到',pending:'等待付款',privacy:'報名時會使用你的 Google 姓名與 Email，僅供活動報名、付款核對與現場簽到。',notFound:'找不到這個活動。',error:'目前無法載入活動，請稍後再試。'},
+  en:{title:'Events',intro:'Browse talks, networking dinners and themed events, then choose a session and register. How to apply for the 3F venue is on this page too.',details:'View details / register',empty:'No public events are open right now.',follow:'Follow Instagram for event updates',back:'← All events',private:'Private event',public:'Public event',free:'Free',capacity:(n,c)=>c>0?`${n} / ${c} registered`:`${n} registered`,time:'Time TBA',place:'Location TBA',login:'Sign in to register',register:'Register',pay:'Continue to payment',resume:'Resume payment',ticket:'Show event ticket',cancel:'Cancel registration',full:'Sold out',paid:'Payment confirmed. Your event ticket is ready.',canceled:'Payment was canceled. Your spot remains held until checkout expires.',checked:'Checked in',pending:'Payment pending',privacy:'We use your Google name and email only for event registration, payment reconciliation, and check-in.',notFound:'Event not found.',error:'Events are temporarily unavailable.'},
+  ja:{title:'イベント',intro:'講座、交流ディナー、テーマイベントを確認し、参加する回を選んでお申し込みください。3階会場の申請方法と条件もこのページにあります。',details:'詳細・申込を見る',empty:'現在、申込受付中の公開イベントはありません。',follow:'Instagramでイベント情報を見る',back:'← イベント一覧',private:'非公開イベント',public:'公開イベント',free:'無料',capacity:(n,c)=>c>0?`申込 ${n}／${c} 名`:`申込 ${n} 名`,time:'日時未定',place:'場所未定',login:'ログインして申込',register:'申し込む',pay:'支払いへ進む',resume:'支払いを続ける',ticket:'チケットを表示',cancel:'申込を取り消す',full:'満席',paid:'支払いを確認しました。チケットが発行されました。',canceled:'支払いはキャンセルされました。Checkout の期限まで枠を確保します。',checked:'チェックイン済み',pending:'支払い待ち',privacy:'Google の氏名とメールは、申込・支払い照合・受付のためにのみ使用します。',notFound:'イベントが見つかりません。',error:'現在イベントを読み込めません。'}
 }[lang];
+document.getElementById('ev-kicker').textContent={zh:'言文字｜台灣人才聚落',en:'emoji — Taiwan Talent Hub',ja:'言文字｜台湾タレントハブ'}[lang];document.getElementById('ev-title').textContent=T.title;document.getElementById('ev-intro').textContent=T.intro;
 const applyText={zh:['辦社群講座、工作坊或交流活動','社群主辦人可提出 3F 場地申請；送出申請不代表場地已保留。','填寫 3F 社群活動申請','企業／團隊包場請來信'],en:['Host a community talk, workshop or meetup','Community organizers may apply to use 3F. Submitting an application does not reserve the venue.','Apply for a 3F community event','Email about business or team hire'],ja:['コミュニティ講座、ワークショップ、交流会を開催','コミュニティ主催者は3Fの会場利用を申請できます。申請を送信しても会場は確保されません。','3Fコミュニティ活動の会場利用を申請','企業・チーム貸切を問い合わせる']}[lang];
 document.getElementById('ev-apply-title').textContent=applyText[0];
 document.getElementById('ev-apply-copy').textContent=applyText[1];
@@ -85,6 +149,7 @@ document.getElementById('ev-apply-link').textContent=applyText[2]+' →';
 document.getElementById('ev-apply-link').href=base+'/event-application';
 document.getElementById('ev-business-link').textContent=applyText[3]+' →';
 document.getElementById('ev-apply').hidden=!!detailSlug();
+document.querySelectorAll('.ev-lang').forEach(el=>{el.hidden=el.dataset.lang!==lang||!!detailSlug();});
 const app=document.getElementById('ev-app');
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money=n=>n>0?'NT$'+Number(n).toLocaleString('en-US'):T.free;
@@ -94,7 +159,7 @@ async function api(path,{method='GET',body}={}){const res=await fetch('/api'+pat
 function eventPath(e){return `${base}/events/${encodeURIComponent(e.slug||e.id)}`;}
 function detailSlug(){const parts=location.pathname.split('/').filter(Boolean);if(parts[0]==='en'||parts[0]==='ja')parts.shift();return parts[0]==='events'&&parts[1]?decodeURIComponent(parts.slice(1).join('/')):'';}
 function meta(e){const when=[e.starts_at,e.ends_at].filter(Boolean).join(' – ')||T.time;return `${esc(when)}<br>${esc(e.location||T.place)}`;}
-function renderList(events){document.title=T.title+'｜言文字・Taiwan Talent Hub';app.innerHTML=`<section class="ev-hero"><div><p class="ev-kicker">emoji — Taiwan Talent Hub</p><h1 class="ev-h1">${T.title}</h1><p class="ev-intro">${T.intro}</p></div></section><section class="ev-grid">${events.length?events.map(e=>`<article class="ev-card"><a href="${eventPath(e)}"><span class="ev-pill">${T.public}</span><h2>${esc(e.title)}</h2><div class="ev-meta">${meta(e)}</div>${e.description?`<p class="ev-desc">${esc(e.description)}</p>`:''}<div class="ev-row"><span>${esc(T.capacity(e.reg_count,e.capacity))}</span><span class="ev-price">${money(e.price_twd)}</span></div><span class="ev-card__cta">${T.details} →</span></a></article>`).join(''):`<div class="ev-empty"><p>${T.empty}</p><a class="btn btn--ghost" href="https://www.instagram.com/emoji0701" target="_blank" rel="noopener">${T.follow} →</a></div>`}</section>`;}
+function renderList(events){document.title=T.title+'｜言文字・Taiwan Talent Hub';document.getElementById('ev-hero').hidden=false;app.innerHTML=`<section class="ev-grid">${events.length?events.map(e=>`<article class="ev-card"><a href="${eventPath(e)}"><span class="ev-pill">${T.public}</span><h2>${esc(e.title)}</h2><div class="ev-meta">${meta(e)}</div>${e.description?`<p class="ev-desc">${esc(e.description)}</p>`:''}<div class="ev-row"><span>${esc(T.capacity(e.reg_count,e.capacity))}</span><span class="ev-price">${money(e.price_twd)}</span></div><span class="ev-card__cta">${T.details} →</span></a></article>`).join(''):`<div class="ev-empty"><p>${T.empty}</p><a class="btn btn--ghost" href="https://www.instagram.com/emoji0701" target="_blank" rel="noopener">${T.follow} →</a></div>`}</section>`;}
 function actionFor(e){
   const full=e.capacity>0&&e.reg_count>=e.capacity&&!e.registered&&e.registration_status!=='pending_payment';
   if(e.registered)return `<button class="btn btn--solid" id="ev-ticket">${T.ticket}</button>${e.price_twd===0&&!e.checked_in_at?`<button class="btn btn--ghost" id="ev-cancel">${T.cancel}</button>`:''}`;
@@ -107,7 +172,7 @@ function actionFor(e){
 function renderDetail(e){
   document.title=e.title+'｜'+T.title+'｜言文字';
   const status=e.checked_in_at?`<p class="ev-pill">${T.checked}</p>`:e.registration_status==='pending_payment'?`<p class="ev-pill private">${T.pending}</p>`:'';
-  app.innerHTML=`<a class="ev-back" href="${base}/events">${T.back}</a><article class="ev-detail"><div class="ev-copy"><span class="ev-pill ${e.visibility==='private'?'private':''}">${e.visibility==='private'?T.private:T.public}</span><h1 class="ev-h1" style="font-size:clamp(2.1rem,5vw,4rem);margin-top:20px">${esc(e.title)}</h1><div class="ev-meta" style="font-size:1rem;margin-top:24px">${meta(e)}</div>${e.description?`<p class="ev-desc" style="margin-top:28px">${esc(e.description)}</p>`:''}</div><aside class="ev-side"><p class="ev-kicker">Ticket</p><div class="ev-row" style="margin-top:0;padding-top:0;border:0"><b>${esc(T.capacity(e.reg_count,e.capacity))}</b><span class="ev-price">${money(e.price_twd)}</span></div>${status}<div id="ev-actions">${actionFor(e)}</div><div class="ev-qr" id="ev-qr" hidden></div><p class="ev-note">${T.privacy}</p></aside></article>`;
+  document.getElementById('ev-hero').hidden=true;app.innerHTML=`<a class="ev-back" href="${base}/events">${T.back}</a><article class="ev-detail"><div class="ev-copy"><span class="ev-pill ${e.visibility==='private'?'private':''}">${e.visibility==='private'?T.private:T.public}</span><h1 class="ev-h1" style="font-size:clamp(2.1rem,5vw,4rem);margin-top:20px">${esc(e.title)}</h1><div class="ev-meta" style="font-size:1rem;margin-top:24px">${meta(e)}</div>${e.description?`<p class="ev-desc" style="margin-top:28px">${esc(e.description)}</p>`:''}</div><aside class="ev-side"><p class="ev-kicker">Ticket</p><div class="ev-row" style="margin-top:0;padding-top:0;border:0"><b>${esc(T.capacity(e.reg_count,e.capacity))}</b><span class="ev-price">${money(e.price_twd)}</span></div>${status}<div id="ev-actions">${actionFor(e)}</div><div class="ev-qr" id="ev-qr" hidden></div><p class="ev-note">${T.privacy}</p></aside></article>`;
   document.getElementById('ev-register')?.addEventListener('click',()=>register(e));
   document.getElementById('ev-ticket')?.addEventListener('click',()=>showTicket(e));
   document.getElementById('ev-cancel')?.addEventListener('click',()=>cancel(e));

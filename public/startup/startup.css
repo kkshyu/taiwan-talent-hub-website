@@ -17,7 +17,7 @@
 .stp-hero-side{flex:0 0 auto;display:flex;flex-direction:column;gap:.35rem}
 .stp-hero-side.is-end{text-align:right;align-items:flex-end}
 .stp-hero-cn{font-family:var(--serif);font-size:1.28rem;font-weight:600;color:var(--ink-2)}
-.stp-hero-en{font-family:var(--mono);font-size:1rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+.stp-hero-en{font-family:var(--display);font-size:1rem;letter-spacing:.1em;color:var(--muted)}
 .stp-hero-arrow{
   position:relative;flex:1 1 auto;min-width:56px;height:1px;
   background:var(--ink);margin:0 6px;
@@ -43,17 +43,17 @@
   margin:clamp(30px,4vw,44px) 0 6px;
 }
 .stp-track::before{
-  content:"";position:absolute;top:32px;left:6%;right:6%;height:1px;
+  content:"";position:absolute;top:28px;left:0;right:0;height:1px;
   background:var(--line-strong);z-index:0;
 }
 .stp-station{
   position:relative;z-index:1;flex:1;min-width:0;
-  display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;
+  display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:14px;
   padding:0 6px;
 }
-.stp-station-marker{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stp-station-marker{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .stp-station-dot{
-  width:64px;height:64px;flex:0 0 auto;border-radius:50%;
+  width:56px;height:56px;flex:0 0 auto;border-radius:50%;
   border:1px solid var(--line-strong);background:var(--paper-card);
   display:grid;place-items:center;box-shadow:var(--shadow);
   font-family:var(--mono);font-size:1rem;letter-spacing:.06em;color:var(--ink-2);
@@ -63,7 +63,7 @@
   box-shadow:0 1px 0 var(--accent-strong),0 12px 24px -14px rgba(27,26,23,.4);
 }
 .stp-station-flag{
-  font-family:var(--mono);font-size:1rem;letter-spacing:.14em;text-transform:uppercase;
+  font-family:var(--sans);font-size:1rem;letter-spacing:.04em;
   color:var(--brass);white-space:nowrap;
 }
 .stp-station-body{display:flex;flex-direction:column;gap:8px}
@@ -79,7 +79,7 @@
   padding:24px 20px;background:var(--paper-card);border:1px solid var(--line);
   border-radius:var(--r-lg);
 }
-.stp-flow-num{font-family:var(--mono);font-size:1rem;letter-spacing:.16em;color:var(--brass);text-transform:uppercase}
+.stp-flow-num{font-family:var(--latin,var(--display));font-size:1rem;letter-spacing:.08em;color:var(--muted)}
 .stp-flow-step h4{font-family:var(--serif);font-size:1.05rem;color:var(--ink-2)}
 .stp-flow-step p{font-size:1rem;color:var(--muted);margin:0}
 .stp-flow-arrow{flex:0 0 auto;width:34px;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:.55}
@@ -94,10 +94,10 @@
   border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);
 }
 .stp-lane::before{
-  content:"";position:absolute;top:0;left:24px;right:24px;height:3px;
+  display:none;content:"";position:absolute;top:0;left:24px;right:24px;height:3px;
   background:var(--ink);opacity:.16;border-radius:0 0 3px 3px;
 }
-.stp-lane-idx{font-family:var(--mono);font-size:1rem;letter-spacing:.1em;color:var(--brass)}
+.stp-lane-idx{display:none}
 .stp-lane h3{font-family:var(--serif);font-size:1.18rem;margin:.55rem 0 .5rem;color:var(--ink-2)}
 .stp-lane p{font-size:1rem;color:var(--muted);margin:0}
 
@@ -111,12 +111,12 @@
   background:var(--paper-card);border:1px solid var(--line);border-radius:var(--r-lg);
   padding:clamp(26px,3vw,34px);box-shadow:var(--shadow);
 }
-.stp-bridge-tag{font-family:var(--mono);font-size:1rem;letter-spacing:.12em;color:var(--brass)}
+.stp-bridge-tag{font-family:var(--sans);font-size:1rem;letter-spacing:.04em;color:var(--muted)}
 .stp-bridge-side h3{font-family:var(--serif);font-size:1.2rem;margin:.5rem 0 .6rem;color:var(--ink-2)}
 .stp-bridge-side p{color:var(--muted);font-size:1rem;margin:0}
 .stp-bridge-mark{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink)}
 .stp-bridge-mark svg{width:26px;height:26px}
-.stp-bridge-mark span{font-family:var(--mono);font-size:1rem;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.stp-bridge-mark span{font-family:var(--sans);font-size:1rem;letter-spacing:.04em;color:var(--muted)}
 
 /* -------------------------------------------------------------------------
    為什麼是我們 — 編號清單
@@ -131,7 +131,7 @@
 }
 .stp-why-item:nth-child(odd){border-right:1px solid var(--line-faint)}
 .stp-why-num{
-  font-family:var(--display);font-style:italic;font-size:1.6rem;line-height:1;
+  display:none;font-family:var(--display);font-style:italic;font-size:1.6rem;line-height:1;
   color:var(--brass);flex:0 0 auto;min-width:1.6ch;
 }
 .stp-why-item h3{font-family:var(--serif);font-size:1.05rem;margin-bottom:.35rem;color:var(--ink-2)}

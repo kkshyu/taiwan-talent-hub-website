@@ -18,7 +18,7 @@
 }
 /* 極淡的信紙浮水印：偏心圓，不置中 */
 .fnd-hero::before{
-  content:"";position:absolute;top:-140px;right:-160px;width:560px;height:560px;
+  display:none;content:"";position:absolute;top:-140px;right:-160px;width:560px;height:560px;
   border-radius:50%;
   background:repeating-radial-gradient(circle at 50% 50%,transparent 0 8px,rgba(27,26,23,.045) 8px 9px);
   -webkit-mask:radial-gradient(circle at 50% 50%,#000 58%,transparent 72%);
@@ -39,7 +39,7 @@
 }
 .fnd-invite__title .latin-sub{
   display:block;font-family:var(--display);font-weight:500;font-size:max(1rem,.3em);
-  letter-spacing:.2em;text-transform:uppercase;margin-top:1rem;color:var(--muted);
+  letter-spacing:.08em;margin-top:1rem;color:var(--muted);
 }
 .fnd-invite__lead{
   font-size:clamp(1.03rem,1.4vw,1.18rem);color:var(--text);max-width:46ch;

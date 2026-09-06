@@ -239,7 +239,7 @@ const CONTRACT_HTML = `
 <h4>第三條　會費與付款</h4>
 <p>創始會費為新台幣 35,000 元整（固定，與一般年費同牌價），以線上刷卡或匯款一次付清；甲方對帳確認入帳後，核發創始會員證並保留創始編號（001–100）。</p>
 <h4>第四條　會籍起算日</h4>
-<p>會籍自 2026 年 11 月 1 日正式開幕日起算；若開幕延後，自實際開幕日起算，會籍期間與贈點均不縮減。</p>
+<p>會籍自 2026 年 11 月 1 日起算；若據點啟用延後，自實際啟用日起算，會籍期間與贈點均不縮減。</p>
 <h4>第五條　條件式服務揭露</h4>
 <p>二樓 24 小時膠囊休憩席、娛樂室與淋浴服務屬條件式服務，於律師口頭意見後由營運方確認啟用；啟用前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。</p>
 <h4>第六條　退費</h4>
@@ -335,11 +335,11 @@ function renderDashboard() {
   host.innerHTML = `
     <div class="dash-grid">
       ${stat('創始會費', num(totalFee), 'NT$', '一次付清・與一般年費同價', 'accent')}
-      ${stat('會籍期間', TERM_MONTHS + '<span class="u"> 個月</span>', '', '自正式開幕日起算')}
-      ${stat('會籍起訖', `${fmtDate(c.start_date)}<span class="u"> 起</span>`, '', `至 ${fmtDate(c.maturity_date)}・開幕延後則順延`)}
+      ${stat('會籍期間', TERM_MONTHS + '<span class="u"> 個月</span>', '', '自據點啟用日起算')}
+      ${stat('會籍起訖', `${fmtDate(c.start_date)}<span class="u"> 起</span>`, '', `至 ${fmtDate(c.maturity_date)}・啟用延後則順延`)}
       ${stat('贈點', GIFT_POINTS.toLocaleString('en-US') + '<span class="u"> 點</span>', '', '付款入帳・一年效期・不可轉讓兌現')}
       ${stat('創始編號', esc(c.cert_no), '', '限量 100 名')}
-      ${stat('會員狀態', memActive ? '已啟用' : (confirmed ? '待開幕啟用' : '待入帳'), '', '創始會員 Founding Member')}
+      ${stat('會員狀態', memActive ? '已啟用' : (confirmed ? '待啟用' : '待入帳'), '', '創始會員 Founding Member')}
       ${stat('創始權益', '3<span class="u"> 項</span>', '', '創始牆・創始晚餐・續約鎖價')}
       ${stat('專案建置進度', DB.bond.progress + '<span class="u">%</span>', '', '見專案更新')}
     </div>
@@ -455,7 +455,7 @@ function renderAgreement(certId) {
     <h4>第三條（會費與付款）</h4>
     <p>創始會費為新台幣 ${num(c.amount)} 元整（固定，與一般年費同牌價），乙方以線上刷卡或匯款一次付清。甲方對帳確認入帳後，核發創始會員證並保留乙方之創始編號（001–100）。</p>
     <h4>第四條（會籍起算日）</h4>
-    <p>會籍自 2026 年 11 月 1 日正式開幕日起算；若開幕延後，自實際開幕日起算，會籍期間與贈點均不縮減。系統顯示之起訖日（${fmtDate(c.start_date)} 至 ${fmtDate(c.maturity_date)}）將依實際開幕日調整。</p>
+    <p>會籍自 2026 年 11 月 1 日起算；若據點啟用延後，自實際啟用日起算，會籍期間與贈點均不縮減。系統顯示之起訖日（${fmtDate(c.start_date)} 至 ${fmtDate(c.maturity_date)}）將依實際啟用日調整。</p>
     <h4>第五條（條件式服務揭露）</h4>
     <p>二樓 24 小時膠囊休憩席、娛樂室與淋浴服務屬條件式服務，於律師口頭意見後由營運方確認啟用；啟用前，乙方之贈點得依會員規章兌換已開放之服務項目，細節依會員規章辦理。乙方確認已知悉並同意上述安排。</p>
     <h4>第六條（退費）</h4>
