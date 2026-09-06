@@ -92,6 +92,27 @@
   .a-form textarea,.sp-page-form textarea,.xs-form textarea{width:100%;min-height:64px;resize:vertical;line-height:1.5}
   .a-form fieldset{border:1px solid var(--line);border-radius:var(--a-r)}
   .a-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  /* 行事曆 */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .cal-head{background:var(--paper-alt);padding:6px 8px;font-size:1rem;color:var(--muted);text-align:center}
+  .cal-cell{background:var(--card);min-height:96px;padding:6px;font-size:1rem}
+  .cal-cell b{display:block;font-family:var(--latin);font-weight:600;color:var(--muted);margin-bottom:4px}
+  .cal-today b{color:var(--ink)}
+  .cal-today{background:var(--paper)}
+  .cal-empty{background:var(--paper-alt)}
+  .cal-item{display:block;font-size:1rem;line-height:1.35;padding:3px 6px;margin-bottom:3px;border-left:3px solid var(--ink);background:var(--paper-alt);color:var(--ink);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-item.cal-wait{border-left-color:var(--muted);border-left-style:dashed}
+  .cal-item.cal-ev{border-left-color:#FFDE34}
+  .cal-legend{display:inline-flex;gap:14px;align-items:center;font-size:1rem;color:var(--muted);margin-left:auto}
+  .cal-legend i{display:inline-block;width:10px;height:10px;margin-right:4px;border-left:3px solid var(--ink);background:var(--paper-alt)}
+  .cal-legend i.cal-wait{border-left-color:var(--muted);border-left-style:dashed}
+  .cal-legend i.cal-ev{border-left-color:#FFDE34}
+  @media(max-width:760px){.cal-cell{min-height:60px}.cal-item{font-size:1rem}}
+  /* 櫃檯 */
+  .ct-results{display:grid;gap:6px;margin-bottom:14px}
+  .ct-hit{text-align:left;background:var(--card);border:1px solid var(--line);padding:10px 12px;cursor:pointer;font:inherit;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .ct-hit.on{border-color:var(--ink)}
+  .ct-card{border:1px solid var(--ink);padding:16px;background:var(--card)}
   .a-toolbar input[type=search]{flex:1;min-width:180px}
 
   /* 按鈕：覆寫官網 .btn 的浮起動效，後台用平實樣式 */
@@ -242,6 +263,10 @@ let MENU_SEEDED = false;
 /* 場地申請按需載入；審核草稿跨分頁、refresh 保留。 */
 let APPLICATIONS = null, APPLICATION_FILTER = 'pending', APPLICATION_LOADING = false;
 let APPLICATION_REVIEWING = '', APPLICATION_MESSAGE = '';
+let APPLICATION_KIND = '';
+let CAL_MONTH = null;            // 行事曆月份 'YYYY-MM'；null=本月
+let COUNTER_UID = '';             // 櫃檯：選定的會員
+let LOGS = null;
 const APPLICATION_DRAFTS = new Map();
 
 /* 社群經營分頁狀態（資料按需載入；編輯狀態存全域，refresh 重繪不遺失） */
@@ -503,7 +528,7 @@ function paintApplications(){
   if (badge) { badge.hidden = APPLICATIONS === null; badge.textContent = `待審 ${pending}`; }
   const busy = APPLICATION_LOADING || !!APPLICATION_REVIEWING;
   const labels = {pending:'待審', approved:'通過', rejected:'未通過'};
-  const rows = (APPLICATIONS || []).filter(a=>!APPLICATION_FILTER || a.status===APPLICATION_FILTER);
+  const rows = (APPLICATIONS || []).filter(a=>(!APPLICATION_FILTER || a.status===APPLICATION_FILTER) && (!APPLICATION_KIND || (a.kind||'community')===APPLICATION_KIND));
   const cards = rows.map(a=>`<article class="application-card">
     <h3>${esc(a.title)} <span class="pill ${a.status==='approved'?'pill-ok':'pill-wait'}">${esc(labels[a.status] || a.status)}</span> <span class="pill">${a.kind==='business'?'企業包場':'社群活動'} · ${a.venue==='2F'?'二樓交誼廳':'三樓共享空間'}</span></h3>
     <dl class="application-details">
@@ -533,11 +558,15 @@ function paintApplications(){
       <label>審核狀態 <select id="application-filter" ${busy?'disabled':''}>
         ${Object.entries({pending:'待審',approved:'通過',rejected:'未通過','':'全部'}).map(([value,label])=>`<option value="${value}" ${APPLICATION_FILTER===value?'selected':''}>${label}</option>`).join('')}
       </select></label>
+      <label>類型 <select id="application-kind" ${busy?'disabled':''}>
+        ${Object.entries({'':'全部',community:'社群活動',business:'企業包場'}).map(([value,label])=>`<option value="${value}" ${APPLICATION_KIND===value?'selected':''}>${label}</option>`).join('')}
+      </select></label>
       <button class="btn btn--ghost btn-sm" id="application-reload" ${busy?'disabled':''}>${APPLICATION_LOADING?'載入中…':'重新載入'}</button>
     </div>
     <p class="application-message" role="status" aria-live="polite">${esc(APPLICATION_MESSAGE)}</p>
     ${cards || `<p class="a-empty">${APPLICATION_LOADING?'載入申請中…':APPLICATIONS===null?'尚未取得申請資料，請重新載入。':'目前沒有符合篩選條件的申請。'}</p>`}`;
   document.getElementById('application-filter').onchange = e=>{ APPLICATION_FILTER=e.target.value; paintApplications(); };
+  document.getElementById('application-kind').onchange = e=>{ APPLICATION_KIND=e.target.value; paintApplications(); };
   document.getElementById('application-reload').onclick = ()=>loadApplications();
   host.querySelectorAll('[data-application-review]').forEach(form=>{
     form.elements.review_note.oninput = e=>APPLICATION_DRAFTS.set(form.dataset.applicationReview, e.target.value);
@@ -731,6 +760,117 @@ function tabContent(d){
   </div>`;
 }
 
+
+/* ===== 行事曆：場地申請＋公開活動 ===== */
+function tabCalendar(){ return '<div class="a-sec" id="calendar-body"></div>'; }
+function hm(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function paintCalendar(){
+  const host = document.getElementById('calendar-body'); if (!host) return;
+  const now = new Date();
+  const [y,m] = (CAL_MONTH || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`).split('-').map(Number);
+  const days = new Date(y, m, 0).getDate();
+  const lead = (new Date(y, m-1, 1).getDay() + 6) % 7;   // 週一起
+  const items = [];
+  (APPLICATIONS || []).filter(a=>a.status!=='rejected').forEach(a=>{
+    items.push({ date:new Date(a.starts_at), end:new Date(a.ends_at), cls:a.status==='approved'?'cal-ok':'cal-wait', href:'/admin/applications',
+      label:(a.kind==='business'?'包場':'社群')+'·'+(a.venue==='2F'?'交誼廳':'3F')+' '+a.title });
+  });
+  ((DATA && DATA.events) || []).forEach(e=>{
+    const t = new Date(e.starts_at_iso || e.starts_at); if (isNaN(t)) return;
+    const end = e.ends_at_iso ? new Date(e.ends_at_iso) : null;
+    items.push({ date:t, end, cls:'cal-ev', href:'/admin/events', label:'活動 '+e.title });
+  });
+  const byDay = {};
+  items.forEach(it=>{ if (it.date.getFullYear()!==y || it.date.getMonth()!==m-1) return; (byDay[it.date.getDate()] = byDay[it.date.getDate()] || []).push(it); });
+  const cells = [];
+  for (let i=0;i<lead;i++) cells.push('<div class="cal-cell cal-empty"></div>');
+  for (let dd=1; dd<=days; dd++) {
+    const list = (byDay[dd]||[]).sort((a,b)=>a.date-b.date).map(it=>`<a class="cal-item ${it.cls}" href="${it.href}" title="${esc(it.label)}">${hm(it.date)}${it.end?'–'+hm(it.end):''} ${esc(it.label)}</a>`).join('');
+    const today = now.getFullYear()===y && now.getMonth()===m-1 && now.getDate()===dd;
+    cells.push(`<div class="cal-cell${today?' cal-today':''}"><b>${dd}</b>${list}</div>`);
+  }
+  host.innerHTML = `<h2>行事曆 <span class="pill">${y} 年 ${m} 月</span></h2>
+    <p class="hint">審核通過與待審的場地申請、公開活動。點項目到對應分頁處理。前台申請表會顯示已通過的時段。</p>
+    <div class="a-toolbar">
+      <button class="btn btn--ghost btn-sm" id="cal-prev">‹ 上月</button>
+      <button class="btn btn--ghost btn-sm" id="cal-now">本月</button>
+      <button class="btn btn--ghost btn-sm" id="cal-next">下月 ›</button>
+      <span class="cal-legend"><i class="cal-ok"></i>已通過 <i class="cal-wait"></i>待審 <i class="cal-ev"></i>活動</span>
+      ${APPLICATIONS===null?'<span class="hint" style="margin:0">申請載入中…</span>':''}
+    </div>
+    <div class="cal-grid">${['一','二','三','四','五','六','日'].map(w=>`<div class="cal-head">${w}</div>`).join('')}${cells.join('')}</div>`;
+  const shift = k => { const d = new Date(y, m-1+k, 1); CAL_MONTH = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; paintCalendar(); };
+  document.getElementById('cal-prev').onclick = ()=>shift(-1);
+  document.getElementById('cal-next').onclick = ()=>shift(1);
+  document.getElementById('cal-now').onclick = ()=>{ CAL_MONTH=null; paintCalendar(); };
+}
+
+/* ===== 櫃檯：現場開通會籍、贈點 ===== */
+function tabCounter(){ return '<div class="a-sec" id="counter-body"></div>'; }
+function paintCounter(){
+  const host = document.getElementById('counter-body'); if (!host) return;
+  const users = (DATA && DATA.users) || [];
+  const u = users.find(x=>x.id===COUNTER_UID) || null;
+  const plans = { day_4h:'單日 4 小時 NT$200', day_12h:'單日 12 小時 NT$500', month:'月會員 NT$4,000（贈 1,000 點）', quarter:'季會員 NT$10,000（贈 3,000 點）', year:'年會員 NT$35,000（贈 10,000 點）' };
+  host.innerHTML = `<h2>櫃檯</h2>
+    <p class="hint">現場收款後在這裡開通會籍或發點。收款本身不經系統（現金／刷卡機），開通後會員專區即時生效；月季年會籍自動贈點。</p>
+    <div class="a-toolbar"><input type="search" id="ct-q" placeholder="搜尋姓名 / Email / 電話…" style="min-width:260px" autofocus></div>
+    <div id="ct-results" class="ct-results"></div>
+    ${u ? `<div class="ct-card">
+      <div><b>${esc(u.name||'—')}</b> <span class="a-mono">${esc(u.email||'')}</span> ${esc(u.phone||'')}</div>
+      <div class="hint" style="margin:6px 0 14px">點數 ${u.points_balance!=null?Number(u.points_balance):'—'} · ${esc(u.access_summary||'無有效會籍')} ${u.access_active?'<span class="pill pill-ok">門禁有效</span>':''}</div>
+      <div class="a-toolbar" style="flex-wrap:wrap">
+        <select id="ct-plan">${Object.entries(plans).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+        <button class="btn btn--solid btn-sm" id="ct-grant-plan">開通會籍</button>
+      </div>
+      <div class="a-toolbar" style="flex-wrap:wrap">
+        <input id="ct-pts" type="number" min="1" placeholder="贈點數" style="width:110px">
+        <input id="ct-note" placeholder="備註（必填，例：現場加購）" style="min-width:220px">
+        <button class="btn btn--ghost btn-sm" id="ct-grant-pts">發點</button>
+      </div>
+    </div>` : '<p class="a-empty">先搜尋並選擇會員。</p>'}`;
+  const q = document.getElementById('ct-q');
+  const results = document.getElementById('ct-results');
+  const paintResults = () => {
+    const kw = q.value.trim().toLowerCase();
+    if (!kw) { results.innerHTML=''; return; }
+    const hits = users.filter(x=>((x.name||'')+' '+(x.email||'')+' '+(x.phone||'')).toLowerCase().includes(kw)).slice(0,8);
+    results.innerHTML = hits.length ? hits.map(x=>`<button type="button" class="ct-hit${x.id===COUNTER_UID?' on':''}" data-uid="${esc(x.id)}"><b>${esc(x.name||'—')}</b> <span class="a-mono">${esc(x.email||'')}</span> <span>${esc(x.access_summary||'')}</span></button>`).join('') : '<p class="a-empty">找不到會員；請先請對方以 Google 登入會員專區。</p>';
+    results.querySelectorAll('[data-uid]').forEach(b=>b.onclick=()=>{ COUNTER_UID=b.dataset.uid; paintCounter(); document.getElementById('ct-q').value=kw; paintResultsAfter(); });
+  };
+  const paintResultsAfter = () => { const qq=document.getElementById('ct-q'); if (qq && qq.value) qq.dispatchEvent(new Event('input')); };
+  q.oninput = paintResults;
+  if (u) {
+    document.getElementById('ct-grant-plan').onclick = () => {
+      const plan = document.getElementById('ct-plan').value;
+      if (!confirm(`確定為 ${u.name||u.email} 開通「${plans[plan]}」？`)) return;
+      doThen(()=>api('/admin/entitlements',{method:'POST',body:{ user_id:u.id, plan }}),'已開通會籍');
+    };
+    document.getElementById('ct-grant-pts').onclick = () => {
+      const amount = Number(document.getElementById('ct-pts').value);
+      const note = document.getElementById('ct-note').value.trim();
+      if (!Number.isInteger(amount) || amount<1) { toast('請輸入點數'); return; }
+      if (!note) { toast('備註必填'); return; }
+      doThen(()=>api('/admin/points/grants',{method:'POST',body:{ user_id:u.id, amount, note }}),'已發放點數');
+    };
+  }
+}
+
+/* ===== 操作紀錄（超管） ===== */
+function tabLogs(){ return '<div class="a-sec" id="logs-body"></div>'; }
+async function loadLogs(){
+  const host = document.getElementById('logs-body'); if (!host) return;
+  host.innerHTML = '<h2>操作紀錄</h2><p class="hint">載入中…</p>';
+  try {
+    const d = await api('/admin/logs?limit=300');
+    LOGS = d.logs || [];
+  } catch(e) { host.innerHTML = `<h2>操作紀錄</h2><p class="a-empty">載入失敗：${esc(e.message)}</p>`; return; }
+  const rows = LOGS.map(l=>`<tr><td class="a-mono">${esc(applicationTime(l.created_at))}</td><td>${esc(l.actor)}</td><td class="a-mono">${esc(l.method)} ${esc(l.path)}</td><td>${esc(l.summary||'')}</td><td class="num">${l.status}</td></tr>`).join('') || '<tr><td colspan="5" class="a-empty">尚無紀錄</td></tr>';
+  host.innerHTML = `<h2>操作紀錄</h2>
+    <p class="hint">後台所有成功的寫入操作（POST／DELETE），含 AI agent 金鑰。只讀不可改。</p>
+    <div class="a-wrap2"><table class="a-tbl"><thead><tr><th>時間（台灣）</th><th>操作者</th><th>操作</th><th>內容摘要</th><th class="num">狀態</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 function tabAdmins(d){
   const body = (d.users||[]).filter(u=>u.email).map(u=>`<tr>
     <td>${esc(u.name)}</td><td class="a-mono">${esc(u.email)}</td>
@@ -752,18 +892,21 @@ const TABS = [
   { id:'commitments', label:'參與紀錄', render:tabCommitments },
   { id:'events',      label:'活動',     render:tabEvents },
   { id:'applications',label:'場地申請', render:tabApplications },
+  { id:'calendar',    label:'行事曆',   render:tabCalendar },
+  { id:'counter',     label:'櫃檯',     render:tabCounter },
   { id:'updates',     label:'最新消息', render:tabUpdates },
   { id:'menu',        label:'菜單',     render:tabMenu },
   { id:'content',     label:'網站內容', render:tabContent },
   { id:'social',      label:'社群經營', render:tabSocial },
   { id:'ads',         label:'廣告總覽', render:tabAds },
   { id:'admins',      label:'管理員',   render:tabAdmins, super:true },
+  { id:'logs',        label:'操作紀錄', render:tabLogs, super:true },
 ];
 const NAV_GROUPS = [
-  ['營運', ['overview','members','commitments','events','applications']],
+  ['營運', ['overview','members','commitments','events','applications','calendar','counter']],
   ['內容', ['updates','menu','content']],
   ['行銷', ['social','ads']],
-  ['系統', ['admins']],
+  ['系統', ['admins','logs']],
 ];
 // 側欄 icon：線條 SVG（Lucide 風格），不用 emoji
 const ICONS = {
@@ -771,6 +914,9 @@ const ICONS = {
   members:      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
   commitments:  '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>',
   events:       '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  calendar:     '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+  counter:      '<path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 9l2-5h14l2 5"/><path d="M12 13v4"/>',
+  logs:         '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
   applications: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/>',
   updates:      '<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
   menu:         '<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/>',
@@ -849,6 +995,9 @@ function applyRoute(){
   if (!document.querySelector(`[data-panel="${CSS.escape(tab)}"]`)) { go('', true); return; }
   activateTab(tab);
   if (tab === 'applications') { if (APPLICATIONS===null) loadApplications(); else paintApplications(); return; }
+  if (tab === 'calendar') { if (APPLICATIONS===null) loadApplications().then(paintCalendar); paintCalendar(); return; }
+  if (tab === 'counter') { paintCounter(); return; }
+  if (tab === 'logs') { loadLogs(); return; }
   if (tab === 'ads') { paintAds(); return; }
   if (tab !== 'social') return;
   const v = parts[1] || SOCIAL_VIEW;

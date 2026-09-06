@@ -21,6 +21,7 @@ test('packs and gifts match spec', () => {
   assert.equal(REDEEM_PRICES.shower, 70);
   assert.equal(REDEEM_PRICES.capsule_per_hour, 100);
   assert.equal(REDEEM_PRICES.entertainment_per_hour, 100);
+  assert.equal(REDEEM_PRICES.laundry, 50);
 });
 
 test('addYears is +1 calendar year UTC', () => {

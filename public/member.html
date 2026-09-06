@@ -130,6 +130,7 @@
 <script src="/vendor/qrcode.min.js"></script>
 <script>
   const FELLOW = '';
+  const PLAN_PRICES = { day_4h: 200, day_12h: 500, month: 4000, quarter: 10000, year: 35000 };
   const KEY = 'tth_token';
   const LANG = (location.pathname.match(/^\/(en|ja)\/member\b/) || [, 'zh'])[1];
   const MEMBER_PATH = LANG === 'zh' ? '/member' : '/' + LANG + '/member';
@@ -170,7 +171,7 @@
       redeemShower: '淋浴（70 點）',
       redeemCapsule: '膠囊休憩席 1h（100 點）',
       redeemEnt: '交誼廳 1h（100 點）',
-      needActive: '需有可進出二三樓的有效會籍，才能兌換淋浴／膠囊／交誼廳。',
+      needActive: '需有可進出二三樓的有效會籍，才能兌換淋浴／洗脫烘／膠囊／交誼廳。',
       orderPaid: (id) => `${id} 訂單`,
       orderRemain: (n) => `剩餘可退 ${n} 點`,
       refund: '退款',
@@ -238,6 +239,14 @@
       editProfile: '編輯資料',
       nameLabel: '姓名',
       saveName: '儲存',
+      phoneLabel: '電話',
+      profileSaved: '已更新資料',
+      profileFail: '更新失敗',
+      redeemLaundry: '頂樓洗脫烘 1 次（50 點）',
+      buyPlanBtn: (price) => `線上購買 NT$${price.toLocaleString('en-US')}`,
+      planPaid: '會籍已購買，首次進場時啟用。',
+      planCanceled: '已取消付款。',
+      planVerifying: '確認付款中…',
       nameReadonly: '姓名資料由 Google 帳號提供，目前僅供檢視、無法在此修改。',
       redeemOk: '兌換成功',
       regOk: '已完成報名',
@@ -614,7 +623,7 @@
       if (id === 'founding') {
         return `<div class="m-row"><b>${esc(T.plans.founding)}</b><span><a href="${FELLOW_PATH}" style="text-decoration:underline;text-underline-offset:3px">${esc(T.joinFounder)}</a></span></div>`;
       }
-      return `<div class="m-row"><b>${esc(T.plans[id])}</b><span class="m-note" style="margin:0">${esc(T.planSoon)}</span></div>`;
+      return `<div class="m-row"><b>${esc(T.plans[id])}</b><span><button type="button" class="btn btn--ghost" data-plan="${id}" style="padding:.35em .9em;font-size:1rem">${esc(T.buyPlanBtn(PLAN_PRICES[id]))}</button></span></div>`;
     }).join('');
 
     return `<section class="m-panel" aria-label="${esc(T.statusLabel)}">
@@ -732,6 +741,7 @@
            <button class="btn btn--solid" type="button" data-redeem="shower">${T.redeemShower}</button>
            <button class="btn btn--ghost" type="button" data-redeem="capsule" data-hours="1">${T.redeemCapsule}</button>
            <button class="btn btn--ghost" type="button" data-redeem="entertainment" data-hours="1">${T.redeemEnt}</button>
+           <button class="btn btn--ghost" type="button" data-redeem="laundry">${T.redeemLaundry}</button>
          </div>`
       : `<p class="m-note" style="margin-top:0">${T.needActive}</p>`;
     const orderRows = orders.filter(o => o.status === 'paid').map(o => {
@@ -831,8 +841,12 @@
             style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink-soft);font-size:1rem;box-sizing:border-box">
         </label>
         <label style="display:block;font-size:1rem;color:var(--muted)">${esc(T.nameLabel)}
-          <input type="text" id="m-profile-name" value="${esc(me.name || '')}" readonly
-            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink-soft);font-size:1rem;box-sizing:border-box">
+          <input type="text" id="m-profile-name" value="${esc(me.name || '')}" maxlength="80" autocomplete="name"
+            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);font-size:1rem;box-sizing:border-box">
+        </label>
+        <label style="display:block;font-size:1rem;color:var(--muted);margin-top:10px">${esc(T.phoneLabel)}
+          <input type="tel" id="m-profile-phone" value="${esc(me.phone || '')}" maxlength="40" autocomplete="tel"
+            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);font-size:1rem;box-sizing:border-box">
         </label>
         <button type="button" class="btn btn--ghost" id="m-profile-save" style="margin-top:12px;padding:.45em 1em;font-size:1rem">${esc(T.saveName)}</button>
       </div>
@@ -859,6 +873,7 @@
     card.querySelectorAll('[data-reg]').forEach(b => b.onclick = () => regEvent(b.dataset.reg, 'POST', b));
     card.querySelectorAll('[data-unreg]').forEach(b => b.onclick = () => regEvent(b.dataset.unreg, 'DELETE', b));
     card.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => buyPack(b.dataset.pack, b));
+    card.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => buyPlan(b.dataset.plan, b));
     card.querySelectorAll('[data-redeem]').forEach(b => b.onclick = () => redeemService(b.dataset.redeem, Number(b.dataset.hours || 1), b));
     card.querySelectorAll('[data-refund]').forEach(b => b.onclick = () => refundPoints(b.dataset.refund, Number(b.dataset.max), b));
     const chip = document.getElementById('m-access-chip');
@@ -870,7 +885,21 @@
     const profileDrawer = document.getElementById('m-profile-drawer');
     if (profileToggle && profileDrawer) profileToggle.onclick = () => { profileDrawer.hidden = !profileDrawer.hidden; };
     const profileSave = document.getElementById('m-profile-save');
-    if (profileSave) profileSave.onclick = () => showToast(T.nameReadonly);
+    if (profileSave) profileSave.onclick = async () => {
+      profileSave.disabled = true;
+      try {
+        const r = await fetch(FELLOW + '/api/me/profile', {
+          method: 'POST',
+          headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+          body: JSON.stringify({ name: document.getElementById('m-profile-name').value, phone: document.getElementById('m-profile-phone').value }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { showToast(d.error || T.profileFail); profileSave.disabled = false; return; }
+        try { localStorage.setItem('tth_name', d.me.name); } catch (e) {}
+        showToast(T.profileSaved);
+        await main();
+      } catch (e) { showToast(T.netFail); profileSave.disabled = false; }
+    };
     const plansToggle = document.getElementById('m-plans-toggle');
     const plansPrimary = document.getElementById('m-plans-primary');
     const plansDrawer = document.getElementById('m-plans-drawer');
@@ -887,6 +916,47 @@
     const ledgerDrawer = document.getElementById('m-ledger-drawer');
     if (ledgerToggle && ledgerDrawer) ledgerToggle.onclick = () => { ledgerDrawer.hidden = !ledgerDrawer.hidden; };
     if (qrOverlayEl && !qrOverlayEl.hidden) startQrRefresh(true);
+  }
+
+  async function buyPlan(plan, btn) {
+    btn.disabled = true;
+    try {
+      const r = await fetch(FELLOW + '/api/me/plans/checkout', {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+        body: JSON.stringify({ plan, lang: LANG }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { showToast(d.error || T.buyFail); btn.disabled = false; return; }
+      location.href = d.url;
+    } catch (e) {
+      showToast(T.netFail);
+      btn.disabled = false;
+    }
+  }
+
+  async function fulfillPlanIfNeeded() {
+    const q = new URLSearchParams(location.search);
+    if (q.get('plan_canceled') === '1') {
+      q.delete('plan_canceled');
+      history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash);
+      showToast(T.planCanceled);
+      return;
+    }
+    if (q.get('plan_paid') !== '1') return;
+    const s = q.get('s');
+    if (!s || !token) throw new Error(T.opFail);
+    showToast(T.planVerifying);
+    const r = await fetch(FELLOW + '/api/me/plans/verify', {
+      method: 'POST',
+      headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+      body: JSON.stringify({ session_id: s }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.ok !== true) throw Object.assign(new Error(d.error || T.opFail), { status: r.status });
+    ['plan_paid', 's'].forEach(key => q.delete(key));
+    history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash);
+    showToast(T.planPaid);
   }
 
   async function buyPack(packId, btn) {
@@ -909,7 +979,7 @@
   async function redeemService(service, hours, btn) {
     btn.disabled = true;
     try {
-      const body = service === 'shower' ? { service } : { service, hours };
+      const body = (service === 'shower' || service === 'laundry') ? { service } : { service, hours };
       const r = await fetch(FELLOW + '/api/me/points/redeem', {
         method: 'POST',
         headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
@@ -984,6 +1054,7 @@
     if (!token) return renderLoggedOut();
     try {
       await fulfillPointsIfNeeded();
+      await fulfillPlanIfNeeded();
       const r = await fetch(FELLOW + '/api/state', { headers: { authorization: 'Bearer ' + token } });
       if (!r.ok) throw Object.assign(new Error('state ' + r.status), { status: r.status });
       const data = await r.json();

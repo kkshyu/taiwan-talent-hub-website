@@ -130,6 +130,7 @@
 <script src="/vendor/qrcode.min.js"></script>
 <script>
   const FELLOW = '';
+  const PLAN_PRICES = { day_4h: 200, day_12h: 500, month: 4000, quarter: 10000, year: 35000 };
   const KEY = 'tth_token';
   const LANG = (location.pathname.match(/^\/(en|ja)\/member\b/) || [, 'zh'])[1];
   const MEMBER_PATH = LANG === 'zh' ? '/member' : '/' + LANG + '/member';
@@ -279,7 +280,7 @@
       redeemShower: 'Shower (70 pts)',
       redeemCapsule: 'Capsule rest seat 1h (100 pts)',
       redeemEnt: 'Play room 1h (100 pts)',
-      needActive: 'A valid membership with 2F/3F access is required to redeem shower / capsule / play room.',
+      needActive: 'A valid membership with 2F/3F access is required to redeem shower / laundry / capsule / social room.',
       orderPaid: (id) => `Order ${id}`,
       orderRemain: (n) => `Refundable left: ${n} pts`,
       refund: 'Refund',
@@ -347,6 +348,14 @@
       editProfile: 'Edit profile',
       nameLabel: 'Name',
       saveName: 'Save',
+      phoneLabel: 'Phone',
+      profileSaved: 'Profile updated',
+      profileFail: 'Update failed',
+      redeemLaundry: 'Rooftop laundry, 1 load (50 pts)',
+      buyPlanBtn: (price) => `Buy online · NT$${price.toLocaleString('en-US')}`,
+      planPaid: 'Membership purchased. It activates on your first entry.',
+      planCanceled: 'Payment canceled.',
+      planVerifying: 'Confirming payment…',
       nameReadonly: 'Your name comes from your Google account. View only for now.',
       redeemOk: 'Redeemed',
       regOk: 'Registered',
@@ -614,7 +623,7 @@
       if (id === 'founding') {
         return `<div class="m-row"><b>${esc(T.plans.founding)}</b><span><a href="${FELLOW_PATH}" style="text-decoration:underline;text-underline-offset:3px">${esc(T.joinFounder)}</a></span></div>`;
       }
-      return `<div class="m-row"><b>${esc(T.plans[id])}</b><span class="m-note" style="margin:0">${esc(T.planSoon)}</span></div>`;
+      return `<div class="m-row"><b>${esc(T.plans[id])}</b><span><button type="button" class="btn btn--ghost" data-plan="${id}" style="padding:.35em .9em;font-size:1rem">${esc(T.buyPlanBtn(PLAN_PRICES[id]))}</button></span></div>`;
     }).join('');
 
     return `<section class="m-panel" aria-label="${esc(T.statusLabel)}">
@@ -732,6 +741,7 @@
            <button class="btn btn--solid" type="button" data-redeem="shower">${T.redeemShower}</button>
            <button class="btn btn--ghost" type="button" data-redeem="capsule" data-hours="1">${T.redeemCapsule}</button>
            <button class="btn btn--ghost" type="button" data-redeem="entertainment" data-hours="1">${T.redeemEnt}</button>
+           <button class="btn btn--ghost" type="button" data-redeem="laundry">${T.redeemLaundry}</button>
          </div>`
       : `<p class="m-note" style="margin-top:0">${T.needActive}</p>`;
     const orderRows = orders.filter(o => o.status === 'paid').map(o => {
@@ -828,8 +838,12 @@
             style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink-soft);font-size:1rem;box-sizing:border-box">
         </label>
         <label style="display:block;font-size:1rem;color:var(--muted)">${esc(T.nameLabel)}
-          <input type="text" id="m-profile-name" value="${esc(me.name || '')}" readonly
-            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink-soft);font-size:1rem;box-sizing:border-box">
+          <input type="text" id="m-profile-name" value="${esc(me.name || '')}" maxlength="80" autocomplete="name"
+            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);font-size:1rem;box-sizing:border-box">
+        </label>
+        <label style="display:block;font-size:1rem;color:var(--muted);margin-top:10px">${esc(T.phoneLabel)}
+          <input type="tel" id="m-profile-phone" value="${esc(me.phone || '')}" maxlength="40" autocomplete="tel"
+            style="display:block;width:100%;margin-top:.35em;padding:.6em .75em;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);font-size:1rem;box-sizing:border-box">
         </label>
         <button type="button" class="btn btn--ghost" id="m-profile-save" style="margin-top:12px;padding:.45em 1em;font-size:1rem">${esc(T.saveName)}</button>
       </div>
@@ -856,6 +870,7 @@
     card.querySelectorAll('[data-reg]').forEach(b => b.onclick = () => regEvent(b.dataset.reg, 'POST', b));
     card.querySelectorAll('[data-unreg]').forEach(b => b.onclick = () => regEvent(b.dataset.unreg, 'DELETE', b));
     card.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => buyPack(b.dataset.pack, b));
+    card.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => buyPlan(b.dataset.plan, b));
     card.querySelectorAll('[data-redeem]').forEach(b => b.onclick = () => redeemService(b.dataset.redeem, Number(b.dataset.hours || 1), b));
     card.querySelectorAll('[data-refund]').forEach(b => b.onclick = () => refundPoints(b.dataset.refund, Number(b.dataset.max), b));
     const chip = document.getElementById('m-access-chip');
@@ -867,7 +882,21 @@
     const profileDrawer = document.getElementById('m-profile-drawer');
     if (profileToggle && profileDrawer) profileToggle.onclick = () => { profileDrawer.hidden = !profileDrawer.hidden; };
     const profileSave = document.getElementById('m-profile-save');
-    if (profileSave) profileSave.onclick = () => showToast(T.nameReadonly);
+    if (profileSave) profileSave.onclick = async () => {
+      profileSave.disabled = true;
+      try {
+        const r = await fetch(FELLOW + '/api/me/profile', {
+          method: 'POST',
+          headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+          body: JSON.stringify({ name: document.getElementById('m-profile-name').value, phone: document.getElementById('m-profile-phone').value }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { showToast(d.error || T.profileFail); profileSave.disabled = false; return; }
+        try { localStorage.setItem('tth_name', d.me.name); } catch (e) {}
+        showToast(T.profileSaved);
+        await main();
+      } catch (e) { showToast(T.netFail); profileSave.disabled = false; }
+    };
     const plansToggle = document.getElementById('m-plans-toggle');
     const plansPrimary = document.getElementById('m-plans-primary');
     const plansDrawer = document.getElementById('m-plans-drawer');
@@ -884,6 +913,47 @@
     const ledgerDrawer = document.getElementById('m-ledger-drawer');
     if (ledgerToggle && ledgerDrawer) ledgerToggle.onclick = () => { ledgerDrawer.hidden = !ledgerDrawer.hidden; };
     if (qrOverlayEl && !qrOverlayEl.hidden) startQrRefresh(true);
+  }
+
+  async function buyPlan(plan, btn) {
+    btn.disabled = true;
+    try {
+      const r = await fetch(FELLOW + '/api/me/plans/checkout', {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+        body: JSON.stringify({ plan, lang: LANG }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { showToast(d.error || T.buyFail); btn.disabled = false; return; }
+      location.href = d.url;
+    } catch (e) {
+      showToast(T.netFail);
+      btn.disabled = false;
+    }
+  }
+
+  async function fulfillPlanIfNeeded() {
+    const q = new URLSearchParams(location.search);
+    if (q.get('plan_canceled') === '1') {
+      q.delete('plan_canceled');
+      history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash);
+      showToast(T.planCanceled);
+      return;
+    }
+    if (q.get('plan_paid') !== '1') return;
+    const s = q.get('s');
+    if (!s || !token) throw new Error(T.opFail);
+    showToast(T.planVerifying);
+    const r = await fetch(FELLOW + '/api/me/plans/verify', {
+      method: 'POST',
+      headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+      body: JSON.stringify({ session_id: s }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.ok !== true) throw Object.assign(new Error(d.error || T.opFail), { status: r.status });
+    ['plan_paid', 's'].forEach(key => q.delete(key));
+    history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash);
+    showToast(T.planPaid);
   }
 
   async function buyPack(packId, btn) {
@@ -906,7 +976,7 @@
   async function redeemService(service, hours, btn) {
     btn.disabled = true;
     try {
-      const body = service === 'shower' ? { service } : { service, hours };
+      const body = (service === 'shower' || service === 'laundry') ? { service } : { service, hours };
       const r = await fetch(FELLOW + '/api/me/points/redeem', {
         method: 'POST',
         headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
@@ -981,6 +1051,7 @@
     if (!token) return renderLoggedOut();
     try {
       await fulfillPointsIfNeeded();
+      await fulfillPlanIfNeeded();
       const r = await fetch(FELLOW + '/api/state', { headers: { authorization: 'Bearer ' + token } });
       if (!r.ok) throw Object.assign(new Error('state ' + r.status), { status: r.status });
       const data = await r.json();

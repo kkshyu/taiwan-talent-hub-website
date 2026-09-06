@@ -22,8 +22,9 @@ const { safeEqual, signToken: signSession, verifyToken: verifySession, matchesPo
   PUBLIC_CONTENT_KEYS, rateLimit } = require('./lib/security');
 const { eventSlug, normalizeEventInput } = require('./lib/events');
 const { normalizeEventApplication } = require('./lib/event-applications');
+const { sendMailQuietly, NOTIFY_EMAIL } = require('./lib/mail');
 const {
-  POINT_PRICE_TWD, PACKS, MEMBERSHIP_GIFT_POINTS,
+  POINT_PRICE_TWD, PACKS, MEMBERSHIP_GIFT_POINTS, PLAN_PRICE_TWD,
   addYears, isLotAvailable, availableBalance, planDebit, planRefund, redeemPointsFor,
 } = require('./lib/points');
 const { sendPage, layoutMiddleware, composeEventMeta } = require('./lib/layout');
@@ -220,6 +221,16 @@ CREATE TABLE IF NOT EXISTS event_applications (
   UNIQUE (user_id, request_id)
 );
 CREATE INDEX IF NOT EXISTS event_applications_created_idx ON event_applications(created_at DESC);
+CREATE TABLE IF NOT EXISTS admin_logs (
+  id TEXT PRIMARY KEY,
+  actor TEXT NOT NULL,
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  summary TEXT NOT NULL DEFAULT '',
+  status INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS admin_logs_created_idx ON admin_logs(created_at DESC);
 CREATE TABLE IF NOT EXISTS event_regs (
   id TEXT PRIMARY KEY,
   event_id TEXT REFERENCES events(id) ON DELETE CASCADE,
@@ -380,6 +391,7 @@ async function migrate() {
   await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false`);
   // 活動模組：由既有免費報名原地升級；舊活動網址先沿用 id，避免資料遺失。
   await q(`ALTER TABLE event_applications ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'community'`);
+  await q(`ALTER TABLE entitlements ADD COLUMN IF NOT EXISTS reminded_at TIMESTAMPTZ`);
   await q(`ALTER TABLE event_applications ADD COLUMN IF NOT EXISTS venue TEXT NOT NULL DEFAULT '3F'`);
   await q(`ALTER TABLE events ADD COLUMN IF NOT EXISTS slug TEXT`);
   await q(`ALTER TABLE events ADD COLUMN IF NOT EXISTS ends_at TIMESTAMPTZ`);
@@ -810,6 +822,7 @@ async function fulfillEventCheckout(session) {
       [reg.id, paidTwd, paymentIntent || null]
     );
     await client.query('COMMIT');
+    notifyRegistration(reg.user_id, reg.event_id);
     return { already: false, registrationId: reg.id };
   } catch (e) {
     await client.query('ROLLBACK');
@@ -842,6 +855,81 @@ async function fulfillPointsCheckout(session) {
   finally { client.release(); }
 }
 
+/* ---------- 一般會籍線上購買：Stripe 結帳完成後開通 ---------- */
+async function fulfillPlanCheckout(session) {
+  const meta = session && session.metadata;
+  if (!meta || meta.kind !== 'plan' || session.payment_status !== 'paid') return { ignored: true };
+  if (!FLOOR_PLANS.includes(meta.plan) || !meta.user_id) return { ignored: true };
+  if (session.currency !== 'twd' || session.amount_total !== PLAN_PRICE_TWD[meta.plan] * 100) throw new Error('會籍付款金額與方案不符');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const id = uid('en_');
+    const inserted = (await client.query(
+      `INSERT INTO entitlements (id,user_id,plan,source,source_id,purchased_at)
+       VALUES ($1,$2,$3,'stripe',$4,now()) ON CONFLICT (source,source_id) DO NOTHING RETURNING id`,
+      [id, meta.user_id, meta.plan, session.id])).rows[0];
+    if (!inserted) { await client.query('COMMIT'); return { already: true }; }
+    await grantMembershipGift(client, meta.user_id, meta.plan, id);
+    await client.query('COMMIT');
+    notifyPlanPurchased(meta.user_id, meta.plan);
+    return { already: false, entitlementId: id };
+  } catch (e) { await client.query('ROLLBACK'); throw e; }
+  finally { client.release(); }
+}
+
+/* ---------- 交易通知信（失敗只記 log） ---------- */
+const PLAN_LABEL = { day_4h: '單日 4 小時', day_12h: '單日 12 小時', month: '月會員', quarter: '季會員', year: '年會員', founding: '創始會員' };
+const fmtTaipei = d => d ? new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(d)) : '';
+const fmtTaipeiDate = d => d ? new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(d)) : '';
+const appKind = a => a.kind === 'business' ? '企業包場' : '社群活動';
+const appVenue = a => a.venue === '2F' ? '二樓交誼廳' : '三樓共享空間';
+async function userContact(userId) {
+  return (await q(`SELECT name,email FROM users WHERE id=$1`, [userId])).rows[0] || null;
+}
+function notifyApplicationCreated(a) {
+  const text = `${a.contact_name} 您好，\n\n我們已收到您的${appKind(a)}申請「${a.title}」。\n場地：${appVenue(a)}\n時段：${fmtTaipei(a.starts_at)} – ${fmtTaipei(a.ends_at)}（台灣時間）\n申請編號：${a.id}\n\n送出申請不代表場地已保留；檔期、費用與使用條件將另行書面確認。審核結果會以 Email 通知，也可登入 ${SITE_BASE}/event-application 查看。\n\nWe have received your venue application. This does not reserve the venue; dates, fees and terms will be confirmed in writing.\n\n言文字｜台灣人才聚落\nus@emoji.tw · +886 921 102 067`;
+  sendMailQuietly({ to: a.contact_email, subject: `[言文字] ${appKind(a)}申請已收到 · ${a.title}`, text, replyTo: NOTIFY_EMAIL });
+  sendMailQuietly({ to: NOTIFY_EMAIL, subject: `[後台] 新${appKind(a)}申請：${a.title}（${appVenue(a)}）`,
+    text: `${appKind(a)}｜${appVenue(a)}\n單位：${a.community_name}\n聯絡：${a.contact_name} ${a.contact_email} ${a.contact_phone || ''}\n時段：${fmtTaipei(a.starts_at)} – ${fmtTaipei(a.ends_at)}\n人數：${a.attendees}\n\n${a.description}\n\n需求：${a.requirements || '—'}\n\n審核：${SITE_BASE}/admin/applications`, replyTo: a.contact_email });
+}
+function notifyApplicationReviewed(a) {
+  const result = a.status === 'approved' ? '初步通過（場地尚未保留）' : '未通過';
+  const text = `${a.contact_name} 您好，\n\n您的${appKind(a)}申請「${a.title}」審核結果：${result}\n\n回覆：\n${a.review_note}\n\n${a.status === 'approved' ? '初步通過不代表場地已保留，我們會再與您確認檔期、費用與使用條件並完成書面確認。' : '如有疑問可直接回覆此信。'}\n\n言文字｜台灣人才聚落\nus@emoji.tw · +886 921 102 067`;
+  sendMailQuietly({ to: a.contact_email, subject: `[言文字] ${appKind(a)}申請審核結果：${result} · ${a.title}`, text, replyTo: NOTIFY_EMAIL });
+}
+async function notifyRegistration(userId, eventId) {
+  try {
+    const u = await userContact(userId); if (!u || !u.email) return;
+    const ev = (await q(`SELECT title,slug,location,starts_at,ends_at FROM events WHERE id=$1`, [eventId])).rows[0]; if (!ev) return;
+    const text = `${u.name || ''} 您好，\n\n已為您完成活動報名：${ev.title}\n時間：${fmtTaipei(ev.starts_at)}${ev.ends_at ? ' – ' + fmtTaipei(ev.ends_at) : ''}（台灣時間）\n地點：${ev.location || '言文字｜台灣人才聚落（台北車站 Z10 出口斜對面）'}\n\n活動當天請登入會員專區出示票券：${SITE_BASE}/member\n活動頁：${SITE_BASE}/events/${encodeURIComponent(ev.slug)}\n\n言文字｜台灣人才聚落`;
+    await sendMailQuietly({ to: u.email, subject: `[言文字] 活動報名成功：${ev.title}`, text, replyTo: NOTIFY_EMAIL });
+  } catch (e) { console.error('[mail] 報名通知失敗：', e.message); }
+}
+async function notifyPlanPurchased(userId, plan) {
+  try {
+    const u = await userContact(userId); if (!u || !u.email) return;
+    const gift = MEMBERSHIP_GIFT_POINTS[plan] || 0;
+    const text = `${u.name || ''} 您好，\n\n您已購買「${PLAN_LABEL[plan] || plan}」（NT$${PLAN_PRICE_TWD[plan].toLocaleString('en-US')}）。${gift ? `已贈送 ${gift.toLocaleString('en-US')} 點（一年效期）。` : ''}\n\n會籍會在您第一次以會員專區的進出 QR 進場時啟用；若 7 天內未進場，將自第 7 天起自動起算。\n會員專區：${SITE_BASE}/member\n\n言文字｜台灣人才聚落`;
+    await sendMailQuietly({ to: u.email, subject: `[言文字] 會籍已購買：${PLAN_LABEL[plan] || plan}`, text, replyTo: NOTIFY_EMAIL });
+  } catch (e) { console.error('[mail] 會籍通知失敗：', e.message); }
+}
+/* 會籍到期前 7 天提醒（每日一次；只寄月／季／年會籍，各寄一次） */
+async function remindExpiringMemberships() {
+  if (!pool || !dbReady) return;
+  const rows = (await q(
+    `SELECT e.id,e.plan,e.ends_at,u.email,u.name FROM entitlements e JOIN users u ON u.id=e.user_id
+     WHERE e.plan IN ('month','quarter','year') AND e.reminded_at IS NULL
+       AND e.ends_at IS NOT NULL AND e.ends_at > now() AND e.ends_at <= now() + interval '7 days'`)).rows;
+  for (const r of rows) {
+    if (!r.email) continue;
+    const text = `${r.name || ''} 您好，\n\n您的「${PLAN_LABEL[r.plan]}」會籍將於 ${fmtTaipeiDate(r.ends_at)} 到期。\n要續約或升級，可到會員專區線上購買，或到現場辦理：${SITE_BASE}/member\n\n言文字｜台灣人才聚落`;
+    await sendMailQuietly({ to: r.email, subject: `[言文字] 會籍將於 ${fmtTaipeiDate(r.ends_at)} 到期`, text, replyTo: NOTIFY_EMAIL });
+    await q(`UPDATE entitlements SET reminded_at=now() WHERE id=$1`, [r.id]);
+  }
+  if (rows.length) console.log(`[remind] 會籍到期提醒 ${rows.length} 封`);
+}
+
 /* ---------- app ---------- */
 const app = express();
 app.disable('x-powered-by');
@@ -871,6 +959,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '
       if (!pool || !dbReady) return res.status(503).send('database not ready');
       await fulfillEventCheckout(event.data.object);
       await fulfillPointsCheckout(event.data.object);
+      await fulfillPlanCheckout(event.data.object);
     } else if (event.type === 'checkout.session.expired') {
       if (!pool || !dbReady) return res.status(503).send('database not ready');
       await expireEventCheckout(event.data.object);
@@ -882,6 +971,24 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '
   }
 });
 app.use(express.json({ limit: '256kb' }));
+
+// 後台操作紀錄：/api/admin 的寫入（成功者）記 actor／路徑／摘要；GET 不記。
+app.use('/api/admin', (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'OPTIONS') return next();
+  res.on('finish', () => {
+    if (!pool || !dbReady || !req.auth || res.statusCode >= 400) return;
+    const actor = req.auth.agent ? 'admin-api-key' : (req.auth.email || req.auth.sub || 'unknown');
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const summary = Object.entries(body)
+      .filter(([k]) => !/token|secret|password|key/i.test(k))
+      .map(([k, v]) => `${k}=${typeof v === 'string' ? v.slice(0, 60) : JSON.stringify(v)?.slice(0, 60)}`)
+      .join(' ').slice(0, 500);
+    q(`INSERT INTO admin_logs (id,actor,method,path,summary,status) VALUES ($1,$2,$3,$4,$5,$6)`,
+      [uid('log_'), actor, req.method, '/api/admin' + req.path, summary, res.statusCode])
+      .catch(e => console.error('[admin-log]', e.message));
+  });
+  next();
+});
 
 // CORS：官網（www.emoji.tw）會員專區以 Bearer token 跨網域打 /api；只放行白名單來源
 app.use((req, res, next) => {
@@ -1387,7 +1494,7 @@ app.post('/api/me/points/redeem', auth, requireDb, wrap(async (req, res) => {
   }
   const service = (req.body.service || '').trim();
   let hours = req.body.hours;
-  if (service === 'shower') hours = 1;
+  if (service === 'shower' || service === 'laundry') hours = 1;
   else {
     hours = Number(hours);
     if (!Number.isInteger(hours) || hours < 1) return res.status(400).json({ error: 'hours 須為正整數。' });
@@ -1412,12 +1519,12 @@ app.post('/api/me/points/redeem', auth, requireDb, wrap(async (req, res) => {
     await client.query(
       `INSERT INTO point_redemptions (id, user_id, service, points, hours, status)
        VALUES ($1,$2,$3,$4,$5,'paid')`,
-      [rid, req.auth.sub, service, points, service === 'shower' ? null : hours]
+      [rid, req.auth.sub, service, points, (service === 'shower' || service === 'laundry') ? null : hours]
     );
     await applyDebit(client, req.auth.sub, plan.allocations, 'redeem', 'point_redemption', rid, req.auth.sub);
     await client.query('COMMIT');
     res.json({
-      redemption: { id: rid, service, points, hours: service === 'shower' ? null : hours, status: 'paid' },
+      redemption: { id: rid, service, points, hours: (service === 'shower' || service === 'laundry') ? null : hours, status: 'paid' },
       balance: (await pointsSummaryFor(req.auth.sub)).balance,
     });
   } catch (e) {
@@ -1701,6 +1808,7 @@ app.post('/api/event-applications', auth, requireDb, wrap(async (req, res) => {
       [uid('ea_'),req.auth.sub,requestId,hash,v.community_name,v.contact_name,v.contact_email,v.contact_phone,
         v.title,v.description,v.starts_at,v.ends_at,v.attendees,v.requirements,v.kind,v.venue])).rows[0];
     await client.query('COMMIT');
+    notifyApplicationCreated(application);
     res.status(201).json({ ok: true, application });
   } catch (err) { await client.query('ROLLBACK'); throw err; }
   finally { client.release(); }
@@ -1735,6 +1843,7 @@ app.post('/api/admin/event-applications/:id/review', auth, adminOnly, requireDb,
     const exists = (await q('SELECT id FROM event_applications WHERE id=$1', [req.params.id])).rows.length;
     return res.status(exists ? 409 : 404).json({ error: exists ? '此申請已完成審核，請重新載入。' : '找不到這筆申請。' });
   }
+  notifyApplicationReviewed(application);
   res.json({ ok: true, application });
 }));
 
@@ -2309,6 +2418,7 @@ app.post('/api/events/:id/register', auth, requireDb, wrap(async (req, res) => {
         [regId, ev.id, req.auth.sub, note]
       );
       await client.query('COMMIT');
+      notifyRegistration(req.auth.sub, ev.id);
       return res.json({ ok: true, registration_id: regId });
     }
 
@@ -2437,6 +2547,79 @@ app.get('/api/checkout/verify', wrap(async (req, res) => {
   res.json({ paid: s.payment_status === 'paid' && !!s.metadata && s.metadata.plan === 'founding-member' });
 }));
 
+/* ---- 會員資料、一般會籍線上購買、場地檔期、後台操作紀錄 ---- */
+app.post('/api/me/profile', auth, requireDb, wrap(async (req, res) => {
+  if (!req.auth.sub) return res.status(403).json({ error: '請以會員身分登入。' });
+  const name = String(req.body?.name ?? '').trim();
+  const phone = String(req.body?.phone ?? '').trim();
+  if (!name || name.length > 80 || name.includes('\0')) return res.status(400).json({ error: '請填寫姓名（80 字以內）。' });
+  if (phone.length > 40 || phone.includes('\0')) return res.status(400).json({ error: '電話格式不正確（40 字以內）。' });
+  const row = (await q(`UPDATE users SET name=$2, phone=$3 WHERE id=$1 RETURNING id,name,email,phone`, [req.auth.sub, name, phone])).rows[0];
+  if (!row) return res.status(404).json({ error: '找不到帳號。' });
+  res.json({ ok: true, me: row });
+}));
+
+app.post('/api/me/plans/checkout', auth, requireDb, wrap(async (req, res) => {
+  if (!req.auth.sub) return res.status(403).json({ error: '請以會員身分登入。' });
+  if (!stripe) return res.status(503).json({ error: '購買功能尚未開通（未設定 Stripe）。' });
+  const plan = String(req.body?.plan || '');
+  if (!FLOOR_PLANS.includes(plan)) return res.status(400).json({ error: '未知方案。' });
+  const user = (await q(`SELECT email FROM users WHERE id=$1`, [req.auth.sub])).rows[0];
+  const lang = String(req.body?.lang || 'zh').toLowerCase();
+  const memberBase = lang === 'en' ? '/en/member' : lang === 'ja' ? '/ja/member' : '/member';
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    customer_email: user?.email || undefined,
+    line_items: [{
+      price_data: {
+        currency: 'twd',
+        product_data: { name: `言文字會籍 ${PLAN_LABEL[plan]}`, description: MEMBERSHIP_GIFT_POINTS[plan] ? `含贈點 ${MEMBERSHIP_GIFT_POINTS[plan]} 點（一年效期）` : '單日方案，首次進場啟用' },
+        unit_amount: PLAN_PRICE_TWD[plan] * 100,
+      },
+      quantity: 1,
+    }],
+    success_url: `${SITE_BASE}${memberBase}?plan_paid=1&s={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${SITE_BASE}${memberBase}?plan_canceled=1`,
+    metadata: { kind: 'plan', plan, user_id: req.auth.sub },
+  });
+  res.json({ url: session.url });
+}));
+
+app.post('/api/me/plans/verify', auth, requireDb, wrap(async (req, res) => {
+  if (!req.auth.sub) return res.status(403).json({ error: '請以會員身分登入。' });
+  if (!stripe) return res.status(503).json({ error: 'Stripe 未設定。' });
+  const sessionId = String(req.body?.session_id || '');
+  if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return res.status(400).json({ error: 'session 不正確。' });
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.metadata?.kind !== 'plan' || session.metadata.user_id !== req.auth.sub) return res.status(404).json({ error: '找不到這筆會籍付款。' });
+  if (session.payment_status !== 'paid') return res.status(402).json({ error: '尚未付款。' });
+  const result = await fulfillPlanCheckout(session);
+  res.json({ ok: true, already: result.already === true, plan: session.metadata.plan });
+}));
+
+// 公開：未來 90 天已排定的場地時段（僅時段與樓層，不含申請人資料）與公開活動
+app.get('/api/venue/schedule', requireDb, wrap(async (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  const bookings = (await q(
+    `SELECT venue,kind,starts_at,ends_at FROM event_applications
+     WHERE status='approved' AND ends_at > now() - interval '1 day' AND starts_at < now() + interval '90 days'
+     ORDER BY starts_at`)).rows;
+  const events = (await q(
+    `SELECT title,slug,location,starts_at,ends_at FROM events
+     WHERE status='報名中' AND visibility='public' AND starts_at IS NOT NULL
+       AND starts_at > now() - interval '1 day' AND starts_at < now() + interval '90 days'
+     ORDER BY starts_at`)).rows;
+  res.json({ bookings, events });
+}));
+
+app.get('/api/admin/logs', auth, adminOnly, requireDb, wrap(async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 200));
+  const logs = (await q(`SELECT id,actor,method,path,summary,status,created_at FROM admin_logs ORDER BY created_at DESC LIMIT $1`, [limit])).rows;
+  res.json({ logs });
+}));
+
 /* ---- 前端靜態檔（官網掛 /、fellow 一頁式掛 /fellow；伺服器源碼不外露） ---- */
 const PUB = path.join(__dirname, 'public');
 // 各計畫一頁式：fellow／startup × 中/en/ja。
@@ -2520,6 +2703,12 @@ async function boot() {
     console.warn('[db] 未設定 DATABASE_URL / POSTGRES_*，API 將回 503；請於 Zeabur 設定資料庫連線。');
   }
   app.listen(PORT, () => console.log(`[server] listening on ${PORT}`));
+
+  // 會籍到期前 7 天提醒：每日 09:00（台北）
+  if (dbReady) {
+    require('node-cron').schedule('0 9 * * *', () => remindExpiringMemberships()
+      .catch(e => console.error('[remind] 失敗：', e.message)), { timezone: 'Asia/Taipei' });
+  }
 
   // IG 自動發佈 cron：env IG_AUTOPUBLISH=1 才啟用（本機開發預設不跑，避免誤發）
   if (process.env.IG_AUTOPUBLISH === '1' && dbReady) {

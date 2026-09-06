@@ -403,9 +403,9 @@ test('三語 member profile inputs 明確宣告 1rem', () => {
   });
 
   assert.deepEqual(results, [
-    ['public/member.html', 2, true],
-    ['public/en/member.html', 2, true],
-    ['public/ja/member.html', 2, true],
+    ['public/member.html', 3, true],
+    ['public/en/member.html', 3, true],
+    ['public/ja/member.html', 3, true],
   ]);
 });
 

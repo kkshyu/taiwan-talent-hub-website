@@ -118,7 +118,7 @@ for (const page of ['member.html', 'en/member.html', 'ja/member.html']) {
       { id: 'own-membership', user_id: 'audit_admin' },
     ] };
     await vm.runInNewContext(main + '\nmain()', {
-      token: 'member-token', FELLOW: '', fulfillPointsIfNeeded: async () => {},
+      token: 'member-token', FELLOW: '', fulfillPointsIfNeeded: async () => {}, fulfillPlanIfNeeded: async () => {},
       fetch: async () => ({ ok: true, json: async () => data }),
       renderMember: value => { rendered = value; },
     });

@@ -59,6 +59,9 @@ curl -H "Authorization: Bearer $ADMIN_API_KEY" https://www.emoji.tw/api/state
 ### GET /api/points/packs
 點數方案定價表。回 `{ price_twd, packs }`。
 
+### GET /api/venue/schedule
+未來 90 天已排定的場地時段與公開活動，回 `{ bookings: [{ venue, kind, starts_at, ends_at }], events: [{ title, slug, location, starts_at, ends_at }] }`。`bookings` 只含審核通過的申請時段，不含申請人資料；供申請表與行事曆顯示「已排定」。快取 5 分鐘。
+
 ### POST /api/checkout
 所有結帳、活動付款、點數購買、退款與 webhook 都必須使用 Stripe「Emoji 言文字」帳號 `acct_1Ts2y95NXMKDsl40`。
 
@@ -102,6 +105,9 @@ Google 授權回呼，簽發會員 token 並導回。
 
 ### POST /api/admin/event-applications/:id/review
 審核待審申請。body：`{ status: "approved" | "rejected", review_note, expected_status: "pending" }`，回 `{ ok, application }`。回覆必填、最多 2000 字，申請人可見。不存在回 404；已審核或其他管理員先完成時回 409，不覆蓋既有結果。保存審核者與時間。審核通過不會自動保留場地、收費或建立／發布活動；檔期、費用與合作條件仍須書面確認。
+
+### GET /api/admin/logs
+後台操作紀錄，`?limit=`（預設 200、最多 500），回 `{ logs: [{ id, actor, method, path, summary, status, created_at }] }`。所有 `/api/admin/*` 的成功寫入（POST／DELETE）由中介層自動記錄，`summary` 為請求欄位摘要（略過含 token／secret／password／key 的欄位）。
 
 ### POST /api/admin/updates
 新增或更新最新消息。body：`{ id?, title, content, type, date }`。
@@ -228,7 +234,7 @@ X 貼文 AI 起草：body `{ topic }`，回 `{ ok, draft: { title, caption, capt
 自己的點數餘額與批次。
 
 ### POST /api/me/points/redeem
-以點數兌換服務（休憩、淋浴）。
+以點數兌換服務。body：`{ service: "shower" | "laundry" | "capsule" | "entertainment", hours? }`；淋浴 70 點／次、頂樓洗脫烘 50 點／次、膠囊席與交誼廳各 100 點／小時（`hours` 必填）。須持有效會籍。
 
 ### POST /api/me/points/orders
 建立點數加值訂單（走 Stripe）。
@@ -238,6 +244,15 @@ X 貼文 AI 起草：body `{ topic }`，回 `{ ok, draft: { title, caption, capt
 
 ### POST /api/me/points/refunds
 點數退款。body：`{ point_order_id, principal_points }`。先持久化扣點與 pending 退款紀錄，再對 Stripe 退款；中斷時回 502 及 `refund_id`。同訂單有 pending 紀錄時，再次送出只重試原紀錄與金額。Stripe 明確失敗或取消時交易回補原點數與贈點，回 409 及 `refund_id`；僅 succeeded 標示完成。
+
+### POST /api/me/profile
+更新自己的姓名與電話。body：`{ name, phone? }`（姓名 1–80 字、電話 40 字以內），回 `{ ok, me }`。Email 由 Google 登入決定，不可改。
+
+### POST /api/me/plans/checkout
+線上購買一般會籍。body：`{ plan: "day_4h" | "day_12h" | "month" | "quarter" | "year", lang? }`，回 `{ url }`（Stripe Checkout）。牌價：200／500／4,000／10,000／35,000。付款完成後由 webhook 或 `/api/me/plans/verify` 建立 entitlement（`source: "stripe"`，以 session id 去重）並依方案贈點；會籍於首次進場啟用，7 天未進場自動起算。未設 Stripe 回 503。
+
+### POST /api/me/plans/verify
+結帳導回時驗證並開通。body：`{ session_id }`，回 `{ ok, already, plan }`；session 不屬於本人回 404、未付款回 402。與 webhook 重複執行不會重複開通。
 
 ### POST /api/commitments
 送出參與（創始會籍）申請。Email 必須為目前已驗證的 Google 登入信箱，此表單不會更動登入身分。
