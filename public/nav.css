@@ -46,7 +46,7 @@ header.site-nav.scrolled{border-bottom-color:rgba(27,26,23,.14);background:rgba(
 /* 橋接 trigger 與選單間的 10px 空隙，滑鼠穿越時 hover 不中斷 */
 .site-nav__menu::before{content:"";position:absolute;left:-8px;right:-8px;top:-12px;height:12px}
 .site-nav__menu a{font-size:1rem;color:#3A362E;padding:9px 13px;border-radius:3px;white-space:nowrap;text-decoration:none}
-.site-nav__menu a[aria-current=page]{background:rgba(255,222,52,.22);color:#1B1A17}
+.site-nav__menu a[aria-current=page]{background:#F4F1EA;color:#1B1A17;font-weight:600}
 .site-nav__lang .site-nav__dd-top{font-size:1rem;color:#6B6558}
 .site-nav__globe{width:19px;height:19px;display:block;flex:0 0 auto}
 .site-nav__lang-label{display:none}          /* 桌機：只留地球 icon */
@@ -60,11 +60,17 @@ header.site-nav.scrolled{border-bottom-color:rgba(27,26,23,.14);background:rgba(
   .site-nav__dd:hover>.site-nav__menu,.site-nav__dd:focus-within>.site-nav__menu{opacity:1;visibility:visible;transform:translate(-50%,0);transition-delay:0s}
   .site-nav__lang:hover>.site-nav__menu,.site-nav__lang:focus-within>.site-nav__menu{transform:translateY(0)}
   .site-nav__dd:hover .site-nav__caret,.site-nav__dd:focus-within .site-nav__caret{transform:rotate(180deg)}
-  .site-nav__menu a:hover{background:rgba(255,222,52,.22);color:#1B1A17}
+  .site-nav__menu a:hover{background:#F4F1EA;color:#1B1A17}
   .site-nav__lang:hover .site-nav__dd-top,.site-nav__lang:focus-within .site-nav__dd-top{color:#1B1A17}
   /* 頂層連結 hover 底線展開（重構時漏帶的觸發規則） */
   .site-nav__links>a:not(.btn):hover::after,.site-nav__links>a:not(.btn):focus-visible::after{width:100%}
 }
+
+/* 關於聚落下拉：靠左對齊觸發字 */
+.site-nav__about .site-nav__menu{left:0;transform:translate(0,4px);min-width:220px}
+.site-nav__about.open>.site-nav__menu{transform:translate(0,0)}
+@media (hover:hover) and (min-width:1001px){.site-nav__about:hover>.site-nav__menu,.site-nav__about:focus-within>.site-nav__menu{transform:translate(0,0)}}
+.site-nav__dd-top[aria-current=page]{color:#1B1A17;font-weight:600}
 
 /* ── CTA 按鈕（墨底：黃色留給每頁唯一 highlight／主 CTA，避免同屏兩擊）── */
 .site-nav .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;

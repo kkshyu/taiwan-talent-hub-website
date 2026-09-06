@@ -4,11 +4,18 @@
       <b>言文字</b><span>台灣人才聚落</span>
     </a>
     <nav class="site-nav__links" id="navLinks" aria-label="主要導覽">
-      <a href="/space"{{NAV_SPACE_CURRENT}}>空間與餐飲</a>
+      <div class="site-nav__dd site-nav__about">
+        <a class="site-nav__dd-top" href="/about" aria-haspopup="true" aria-expanded="false"{{NAV_ABOUT_CURRENT}}>關於聚落<svg class="site-nav__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
+        <div class="site-nav__menu">
+          <a href="/about"{{NAV_ABOUT_PAGE_CURRENT}}>聚落理念</a>
+          <a href="/at-cafe"{{NAV_ATCAFE_CURRENT}}>在咖啡 at cafe</a>
+          <a href="/3am"{{NAV_3AM_CURRENT}}>三點水 3AM</a>
+          <a href="/stay-square"{{NAV_STAY_CURRENT}}>等等空間 Stay Square</a>
+        </div>
+      </div>
       <a href="/system"{{NAV_SYSTEM_CURRENT}}>會員方案</a>
       <a href="/events"{{NAV_EVENTS_CURRENT}}>活動與場地</a>
       <a href="/access"{{NAV_ACCESS_CURRENT}}>交通</a>
-      <a href="/about"{{NAV_ABOUT_CURRENT}}>關於</a>
       <a href="/member" id="navMember" data-label-authed="會員專區"{{NAV_MEMBER_CURRENT}}>會員登入</a>
       <div class="site-nav__dd site-nav__lang">
         <button type="button" class="site-nav__dd-top" aria-haspopup="true" aria-expanded="false" aria-label="切換語言">

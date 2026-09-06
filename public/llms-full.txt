@@ -64,6 +64,7 @@
 ## 空間介紹與菜單
 
 - 空間介紹：[中文](https://www.emoji.tw/space) · [English](https://www.emoji.tw/en/space) · [日本語](https://www.emoji.tw/ja/space)
+- 品牌獨立頁：[在咖啡 at cafe](https://www.emoji.tw/at-cafe) · [三點水 3AM](https://www.emoji.tw/3am) · [等等空間 Stay Square](https://www.emoji.tw/stay-square)（英文加 /en、日文加 /ja 前綴）
 - 菜單：[中文](https://www.emoji.tw/space#menu) · [English](https://www.emoji.tw/en/space#menu) · [日本語](https://www.emoji.tw/ja/space#menu)
 - 工作方案與價格：[中文](https://www.emoji.tw/system) · [English](https://www.emoji.tw/en/system) · [日本語](https://www.emoji.tw/ja/system)
 - 交通指引：[中文](https://www.emoji.tw/access) · [English](https://www.emoji.tw/en/access) · [日本語](https://www.emoji.tw/ja/access)

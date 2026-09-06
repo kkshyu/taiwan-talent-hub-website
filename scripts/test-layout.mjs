@@ -167,7 +167,7 @@ test('header partials prioritize visitor tasks and keep brand material in the fo
     assert.doesNotMatch(h, /\/cis\/|Programs|聚落計畫|プログラム/);
     assert.match(h, /NAV_SYSTEM_CURRENT/);
     assert.match(h, new RegExp(`href="${expect[lang].prefix}/system"[^>]*>\\s*${expect[lang].label}`));
-    const positions = ['space', 'system', 'events', 'access', 'about'].map(slug => h.indexOf(`href="${expect[lang].prefix}/${slug}"`));
+    const positions = ['about', 'system', 'events', 'access'].map(slug => h.indexOf(`href="${expect[lang].prefix}/${slug}"`));
     assert.ok(positions.every((position, index) => position >= 0 && (!index || position > positions[index - 1])), `${lang} nav order`);
     assert.match(h, new RegExp(`href="${expect[lang].prefix}/fellow" class="btn"`));
   }
@@ -179,10 +179,15 @@ test('composeLayout access page marks directions current', () => {
   assert.match(html, /href="\/access"[^>]*aria-current="page"/);
 });
 
-test('composeLayout space page marks space current', () => {
+test('composeLayout space and brand pages mark the about dropdown current', () => {
   const raw = `<!doctype html><body>${MARKER_HEADER}<main></main>${MARKER_FOOTER}</body>`;
   const html = composeLayout(raw, '/space');
-  assert.match(html, /href="\/space"[^>]*aria-current="page"/);
+  assert.match(html, /class="site-nav__dd-top" href="\/about"[^>]*aria-current="page"/);
+  const brand = composeLayout(raw, '/en/3am');
+  assert.match(brand, /href="\/en\/3am"[^>]*aria-current="page"/);
+  for (const file of ['at-cafe.html', '3am.html', 'stay-square.html']) {
+    for (const dir of ['', 'en', 'ja']) assert.ok(fs.existsSync(path.join(PUB, dir, file)), `${dir}/${file}`);
+  }
   assert.doesNotMatch(html, /\/menu\//);
 });
 

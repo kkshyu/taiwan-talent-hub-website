@@ -319,5 +319,13 @@
 .space-roof { margin-top: 28px; color: var(--muted); }
 @media (max-width: 760px) {
   .space-brand__grid, .space-floor { grid-template-columns: 1fr; gap: 24px; }
+  .space-tabs .wrap { flex-wrap: wrap; gap: 0 24px; overflow: visible; }
+  .space-tabs a { padding: 12px 0; }
   .space-brand__media { order: -1; }
 }
+/* 品牌獨立頁 */
+.space-hero--brand h1 .swash { font-family: var(--latin); font-weight: 500; font-style: normal; font-size: max(1rem, .62em); letter-spacing: .04em; margin-left: .35em; vertical-align: .08em; }
+.space-tabs a[aria-current] { border-bottom-color: var(--ink); }
+.space-tabs a[aria-current] b { color: var(--ink); }
+.space-brand--solo { padding-top: clamp(28px, 4vw, 48px); border-bottom: 0; }
+.space-brand--solo .space-brand__grid > div > .space-panel__facts:first-child { margin-top: 0; }

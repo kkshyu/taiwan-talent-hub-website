@@ -74,7 +74,8 @@
     });
     // 點選單內連結後收合
     links.addEventListener('click', function (e) {
-      if (e.target.closest('a')) setMenu(false);
+      var a = e.target.closest('a');
+      if (a && !a.classList.contains('site-nav__dd-top')) setMenu(false);  // 下拉頂層連結只展開，不收合整個選單
     });
     // Esc 關閉手機選單並收合下拉
     document.addEventListener('keydown', function (e) {
@@ -94,7 +95,7 @@
       if (!touchLike.matches) return;              // 桌機：hover 顯示，放行預設行為
       var dd = btn.closest('.site-nav__dd');
       if (!dd) return;
-      if (btn.tagName === 'BUTTON') e.preventDefault();
+      e.preventDefault();  // 頂層為連結時亦只展開；首項即為該頁
       var willOpen = !dd.classList.contains('open');
       document.querySelectorAll('.site-nav__dd.open').forEach(function (o) { if (o !== dd) closeDropdown(o); });
       dd.classList.toggle('open', willOpen);
