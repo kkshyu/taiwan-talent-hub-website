@@ -98,7 +98,7 @@ Google 授權回呼，簽發會員 token 並導回。
 ## 後台管理（需管理員或 agent 金鑰）
 
 ### GET /api/admin/event-applications
-讀取社群場地申請及聯絡資料，回 `{ applications }`。僅管理員可讀，不會加入公開活動清單。
+讀取場地申請（含 `kind` 社群／企業與 `venue` 二樓／三樓）及聯絡資料，回 `{ applications }`。僅管理員可讀，不會加入公開活動清單。
 
 ### POST /api/admin/event-applications/:id/review
 審核待審申請。body：`{ status: "approved" | "rejected", review_note, expected_status: "pending" }`，回 `{ ok, application }`。回覆必填、最多 2000 字，申請人可見。不存在回 404；已審核或其他管理員先完成時回 409，不覆蓋既有結果。保存審核者與時間。審核通過不會自動保留場地、收費或建立／發布活動；檔期、費用與合作條件仍須書面確認。
@@ -243,9 +243,11 @@ X 貼文 AI 起草：body `{ topic }`，回 `{ ok, draft: { title, caption, capt
 送出參與（創始會籍）申請。Email 必須為目前已驗證的 Google 登入信箱，此表單不會更動登入身分。
 
 ### POST /api/event-applications
-登入帳號提出三樓活動空間申請，不需付費會籍；agent 金鑰沒有申請人身分，回 403。
+登入帳號提出場地申請（社群活動或企業包場），不需付費會籍；agent 金鑰沒有申請人身分，回 403。
 
-body：`{ request_id, community_name, contact_name, contact_email, contact_phone?, title, description, starts_at, ends_at, attendees, requirements?, consent: true }`。
+body：`{ request_id, kind?, venue?, community_name, contact_name, contact_email, contact_phone?, title, description, starts_at, ends_at, attendees, requirements?, consent: true }`。
+
+- `kind`：`community`（社群活動，預設）或 `business`（企業／團隊／客戶包場）。`venue`：`2F`（二樓交誼廳／交誼廳）或 `3F`（三樓共享空間）；社群活動固定為 `3F`，企業包場必填。
 
 - `request_id`：前端產生的 UUID；相同帳號與識別碼重試只會保存一次。同內容回原申請（200），不同內容回 409；新申請回 201。回應為 `{ ok, application }`。
 - 名稱長度上限：社群 120、聯絡人 80、Email 254、電話 40、活動名稱 160；活動內容 5000、需求 2000 字。電話與需求可留空，其餘必填；Email 必須有效。

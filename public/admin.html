@@ -505,9 +505,9 @@ function paintApplications(){
   const labels = {pending:'待審', approved:'通過', rejected:'未通過'};
   const rows = (APPLICATIONS || []).filter(a=>!APPLICATION_FILTER || a.status===APPLICATION_FILTER);
   const cards = rows.map(a=>`<article class="application-card">
-    <h3>${esc(a.title)} <span class="pill ${a.status==='approved'?'pill-ok':'pill-wait'}">${esc(labels[a.status] || a.status)}</span></h3>
+    <h3>${esc(a.title)} <span class="pill ${a.status==='approved'?'pill-ok':'pill-wait'}">${esc(labels[a.status] || a.status)}</span> <span class="pill">${a.kind==='business'?'企業包場':'社群活動'} · ${a.venue==='2F'?'二樓交誼廳':'三樓共享空間'}</span></h3>
     <dl class="application-details">
-      <dt>申請社群</dt><dd>${esc(a.community_name)}</dd>
+      <dt>${a.kind==='business'?'公司／團隊':'申請社群'}</dt><dd>${esc(a.community_name)}</dd>
       <dt>聯絡人</dt><dd>${esc(a.contact_name)}</dd>
       <dt>Email</dt><dd>${esc(a.contact_email)}</dd>
       <dt>電話</dt><dd>${esc(a.contact_phone || '未提供')}</dd>

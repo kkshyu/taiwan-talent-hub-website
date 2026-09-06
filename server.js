@@ -209,6 +209,8 @@ CREATE TABLE IF NOT EXISTS event_applications (
   ends_at TIMESTAMPTZ NOT NULL CHECK (ends_at > starts_at),
   attendees INT NOT NULL CHECK (attendees BETWEEN 1 AND 10000),
   requirements TEXT NOT NULL DEFAULT '',
+  kind TEXT NOT NULL DEFAULT 'community' CHECK (kind IN ('community','business')),
+  venue TEXT NOT NULL DEFAULT '3F' CHECK (venue IN ('2F','3F')),
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   review_note TEXT NOT NULL DEFAULT '',
   reviewed_at TIMESTAMPTZ,
@@ -377,6 +379,8 @@ async function migrate() {
   // 既有 DB 補欄位：管理員旗標（超管以 Google email 認定，其餘管理員存此旗標）
   await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false`);
   // 活動模組：由既有免費報名原地升級；舊活動網址先沿用 id，避免資料遺失。
+  await q(`ALTER TABLE event_applications ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'community'`);
+  await q(`ALTER TABLE event_applications ADD COLUMN IF NOT EXISTS venue TEXT NOT NULL DEFAULT '3F'`);
   await q(`ALTER TABLE events ADD COLUMN IF NOT EXISTS slug TEXT`);
   await q(`ALTER TABLE events ADD COLUMN IF NOT EXISTS ends_at TIMESTAMPTZ`);
   await q(`ALTER TABLE events ADD COLUMN IF NOT EXISTS price_twd INT NOT NULL DEFAULT 0`);
@@ -1651,7 +1655,7 @@ app.delete('/api/admin/updates/:id', auth, adminOnly, requireDb, wrap(async (req
 }));
 
 /* ---- 社群場地申請：個案審核，不建立場地預訂或公開活動 ---- */
-const APPLICATION_FIELDS = `id,user_id,community_name,contact_name,contact_email,contact_phone,
+const APPLICATION_FIELDS = `id,user_id,kind,venue,community_name,contact_name,contact_email,contact_phone,
   title,description,starts_at,ends_at,attendees,requirements,status,review_note,created_at,reviewed_at`;
 
 app.post('/api/event-applications', auth, requireDb, wrap(async (req, res) => {
@@ -1680,7 +1684,7 @@ app.post('/api/event-applications', auth, requireDb, wrap(async (req, res) => {
     }
     if (new Date(v.starts_at).getTime() <= Date.now()) {
       await client.query('ROLLBACK');
-      return res.status(400).json({ error: '請選擇未來的活動時間。' });
+      return res.status(400).json({ error: '請選擇未來的時間。' });
     }
     const recent = (await client.query(
       `SELECT COUNT(*)::int AS n FROM event_applications WHERE user_id=$1 AND created_at>now()-interval '1 hour'`,
@@ -1692,10 +1696,10 @@ app.post('/api/event-applications', auth, requireDb, wrap(async (req, res) => {
     const application = (await client.query(
       `INSERT INTO event_applications
        (id,user_id,request_id,request_hash,community_name,contact_name,contact_email,contact_phone,
-        title,description,starts_at,ends_at,attendees,requirements)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING ${APPLICATION_FIELDS}`,
+        title,description,starts_at,ends_at,attendees,requirements,kind,venue)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING ${APPLICATION_FIELDS}`,
       [uid('ea_'),req.auth.sub,requestId,hash,v.community_name,v.contact_name,v.contact_email,v.contact_phone,
-        v.title,v.description,v.starts_at,v.ends_at,v.attendees,v.requirements])).rows[0];
+        v.title,v.description,v.starts_at,v.ends_at,v.attendees,v.requirements,v.kind,v.venue])).rows[0];
     await client.query('COMMIT');
     res.status(201).json({ ok: true, application });
   } catch (err) { await client.query('ROLLBACK'); throw err; }

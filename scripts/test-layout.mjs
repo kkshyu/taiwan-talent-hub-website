@@ -156,7 +156,7 @@ test('resolvePublicHtml resolves known pages', () => {
 
 test('header partials prioritize visitor tasks and keep brand material in the footer', () => {
   const expect = {
-    zh: { label: '會員方案', prefix: '' },
+    zh: { label: '消費方式', prefix: '' },
     en: { label: 'Membership', prefix: '/en' },
     ja: { label: '会員プラン', prefix: '/ja' },
   };

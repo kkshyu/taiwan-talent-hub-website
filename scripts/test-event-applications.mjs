@@ -47,6 +47,15 @@ test('application rejects impossible dates, reversed ranges and implicit timezon
   assert.ok(normalizeEventApplication({ ...valid, starts_at: '2096-02-29T10:00' }).value);
 });
 
+test('application kind defaults to community on 3F; business hire must pick 2F or 3F', () => {
+  assert.deepEqual([normalizeEventApplication(valid).value.kind, normalizeEventApplication(valid).value.venue], ['community', '3F']);
+  assert.equal(normalizeEventApplication({ ...valid, kind: 'community', venue: '2F' }).value.venue, '3F');
+  assert.ok(normalizeEventApplication({ ...valid, kind: 'business' }).error);
+  assert.ok(normalizeEventApplication({ ...valid, kind: 'business', venue: '4F' }).error);
+  assert.ok(normalizeEventApplication({ ...valid, kind: 'vip' }).error);
+  for (const venue of ['2F', '3F']) assert.equal(normalizeEventApplication({ ...valid, kind: 'business', venue }).value.venue, venue);
+});
+
 test('application requires explicit consent and bounded integer attendance', () => {
   for (const attendees of [0, -1, 1.5, 10001, '', '1e2', true, [], null])
     assert.ok(normalizeEventApplication({ ...valid, attendees }).error, String(attendees));

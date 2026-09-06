@@ -133,6 +133,15 @@
   .hero__note{margin-top:18px;color:var(--muted);font-size:1rem}
   .hero__note a{text-decoration:underline;text-underline-offset:3px}
   .hero__media{margin:0}
+  /* 首頁 hero：三個品牌示意圖（日／夜／等等空間） */
+  .hero__media--trio{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .hero__tile{display:block;min-width:0}
+  .hero__tile--wide{grid-column:1/-1}
+  .hero__tile img{width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);border-radius:var(--radius-sm);transition:border-color .2s}
+  .hero__tile--wide img{aspect-ratio:16/8}
+  .hero__tile span{display:block;margin-top:7px;font-size:1rem;color:var(--muted);line-height:1.5}
+  .hero__tile:hover img{border-color:var(--ink)}
+  .hero__tile:hover span{color:var(--ink)}
   .hero__media img{width:100%;aspect-ratio:1400/845;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--line)}
   .hero__media figcaption,.journey-card figcaption{margin-top:9px;color:var(--muted);font-size:1rem;line-height:1.55}
   @media(max-width:860px){
