@@ -269,9 +269,9 @@ test('system ja page structure', () => {
 
 test('plan choices, venue enquiries and account limits are explicit in all locales', () => {
   const pages = [
-    ['system.html', 'data-label="適合情境"', '即將開放，請洽現場', '/event-application', '24 小時（條件式啟用）'],
-    [path.join('en', 'system.html'), 'data-label="Best for"', 'Coming soon; ask on site', '/en/event-application', '24-hour access (conditional)'],
-    [path.join('ja', 'system.html'), 'data-label="おすすめ"', '近日公開。現地でお問い合わせください', '/ja/event-application', '24時間利用（条件付き）'],
+    ['system.html', 'data-label="適合情境"', '11 月 1 日正式開幕後開放', '/event-application', '24 小時（條件式啟用）'],
+    [path.join('en', 'system.html'), 'data-label="Best for"', 'Available after the November 1 grand opening', '/en/event-application', '24-hour access (conditional)'],
+    [path.join('ja', 'system.html'), 'data-label="おすすめ"', '11月1日の正式オープン後に利用開始', '/ja/event-application', '24時間利用（条件付き）'],
   ];
   for (const [rel, situation, availability, application, conditionalAccess] of pages) {
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
@@ -295,6 +295,62 @@ test('plan choices, venue enquiries and account limits are explicit in all local
     const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
     assert.match(html, /首次登入會以 Google 已驗證|On first sign-in, we create an account|初回ログイン時/);
     assert.doesNotMatch(html, /activeShort: 'Active'|activeOn: 'Active|activeOff: 'Not Active|非 Active|No active (?:or|plan)|\$\{plan\}(?:進行中|利用中)/);
+  }
+});
+
+test('partner pages route community events to applications and business events to email', () => {
+  const pages = [
+    ['partner/index.html', '/event-application', /企業／團隊／客戶活動/],
+    [path.join('en', 'partner', 'index.html'), '/en/event-application', /Company, team or client event/i],
+    [path.join('ja', 'partner', 'index.html'), '/ja/event-application', /企業・チーム・顧客向け/],
+  ];
+
+  for (const [rel, applicationPath, businessMarker] of pages) {
+    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
+    const routeBlocks = [...html.matchAll(/<div class="(?:hero-cta|pagenav)"[^>]*>([\s\S]*?)<\/div>/g)]
+      .map(match => match[1]);
+    assert.ok(routeBlocks.length >= 5, `${rel} repeats both routes at key decisions`);
+    for (const block of routeBlocks) {
+      assert.ok(block.includes(`href="${applicationPath}"`), `${rel} CTA includes community application`);
+      assert.match(block, /href="mailto:us@emoji\.tw\?subject=/, `${rel} CTA includes business email`);
+    }
+
+    const cards = [...html.matchAll(/<div class="ptn-brick">([\s\S]*?)<\/p><\/div>/g)]
+      .map(match => match[1]);
+    const businessCards = cards.filter(card => businessMarker.test(card));
+    assert.equal(businessCards.length, 1, `${rel} has one business event card`);
+    assert.match(businessCards[0], /href="mailto:us@emoji\.tw\?subject=/);
+    assert.ok(!businessCards[0].includes(`href="${applicationPath}"`), `${rel} business card does not use community application`);
+
+    const communityCards = cards.filter(card => !businessMarker.test(card)).slice(0, 5);
+    assert.equal(communityCards.length, 5, `${rel} has five community event cards`);
+    for (const card of communityCards) {
+      assert.ok(card.includes(`href="${applicationPath}"`), `${rel} community card uses venue application`);
+      assert.doesNotMatch(card, /href="mailto:us@emoji\.tw/);
+    }
+  }
+});
+
+test('public opening copy and Japanese membership terms match the customer flow', () => {
+  const opening = [
+    ['access.html', '11 月 1 日正式開幕後'],
+    [path.join('en', 'access.html'), 'November 1, 2026 grand opening'],
+    [path.join('ja', 'access.html'), '2026年11月1日の正式オープン後'],
+  ];
+  for (const [rel, expected] of opening) {
+    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
+    assert.ok(html.includes(expected));
+    assert.doesNotMatch(html, /試營運起|from the soft opening|プレオープンより/);
+  }
+  const footerOpening = { zh: '11 月 1 日正式開幕後', en: 'November 1 grand opening', ja: '11月1日の正式オープン後' };
+  for (const lang of ['zh', 'en', 'ja']) {
+    const footer = fs.readFileSync(path.join(__dirname, '..', 'views', 'partials', `footer-${lang}.html`), 'utf8');
+    assert.ok(footer.includes(footerOpening[lang]));
+    assert.doesNotMatch(footer, /試營運起|from soft opening|プレオープンより/);
+  }
+  for (const rel of ['member.html', path.join('en', 'member.html'), path.join('ja', 'member.html'), path.join('ja', 'fellow', 'index.html')]) {
+    const html = fs.readFileSync(path.join(PUB, rel), 'utf8');
+    assert.doesNotMatch(html, /会籍|購入元本/);
   }
 });
 

@@ -6,11 +6,12 @@
     "言文字",
     "言文字｜台灣人才聚落"
   ],
-  "description": "言文字｜台灣人才聚落位於台北車站 Z10 出口斜對面。1F 用餐會客不需會員；2F、3F 工作方案 4 小時 NT$200、12 小時 NT$500；3F 可申請團隊活動與社群聚會。預計 2026-10-13 試營運、2026-11-01 正式開幕。",
+  "description": "言文字｜台灣人才聚落位於台北車站 Z10 出口斜對面。2026-10-13 試營運，採限量邀請預覽；2026-11-01 正式開幕並開放一般到訪。開幕後 1F 用餐會客不需會員；2F、3F 工作方案 4 小時 NT$200、12 小時 NT$500。只有 3F 社群活動使用場地申請表；企業、團隊、客戶活動與 offsite 請 Email 洽詢。",
   "url": "https://www.emoji.tw/",
   "inLanguage": ["zh-Hant", "en", "ja"],
   "opening": {
     "softOpen": "2026-10-13",
+    "softOpenAccess": "limited-invitation preview",
     "grandOpen": "2026-11-01"
   },
   "address": {

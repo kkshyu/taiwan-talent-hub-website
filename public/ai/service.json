@@ -1,12 +1,12 @@
 {
   "name": "言文字｜台灣人才聚落 Taiwan Talent Hub",
   "url": "https://www.emoji.tw/",
-  "description": "台北車站旁三層人才聚落：1F 餐飲會客、2F／3F 會員工作與活動空間。",
+  "description": "2026 年 11 月 1 日正式開幕並開放一般到訪的台北車站旁三層空間：1F 餐飲會客、2F／3F 會員工作與活動空間。",
   "dateModified": "2026-09-06",
   "capabilities": [
     {
       "name": "1F dining and client meetings",
-      "description": "在咖啡（at cafe）與三點水（3AM）用餐、會客，不需會員。"
+      "description": "2026 年 11 月 1 日正式開幕後，在咖啡（at cafe）與三點水（3AM）用餐、會客不需會員。"
     },
     {
       "name": "Day membership 4 hours",
@@ -30,9 +30,14 @@
       "url": "https://www.emoji.tw/fellow"
     },
     {
-      "name": "3F event venue application",
-      "description": "三樓可申請團隊活動與社群聚會；送出申請不等於預約成立。",
+      "name": "3F community event application",
+      "description": "只有三樓社群活動使用場地申請表；送出申請或審核通過都不代表場地已預留。",
       "url": "https://www.emoji.tw/event-application"
+    },
+    {
+      "name": "Business and team event enquiry",
+      "description": "企業、團隊、客戶活動與 offsite 請寄信至 us@emoji.tw；日期、人數、空間、費用及條件須另行確認並完成書面約定。",
+      "url": "mailto:us@emoji.tw"
     },
     {
       "name": "Community collaboration",
